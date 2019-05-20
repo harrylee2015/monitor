@@ -1,6 +1,6 @@
 # monitor
 
-* chain33 para chain monitor
+* 用于监控chain33平行链节点
 
 ## 使用方法
 
@@ -17,7 +17,7 @@
     mv build/*   targetDir/
     ```
  
- 3. 启动guess服务
+ 3. 启动monitor服务
 
     > 第一次使用需要安装和初始化数据库，以后就不需要了
      
