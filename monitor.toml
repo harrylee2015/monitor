@@ -1,0 +1,10 @@
+Title="monitor"
+
+[monitor]
+
+# 主链RPC
+mainChain = "10.0.0.13:8802"
+
+
+# 数据存储目录,这个配置不要改，不然初始化数据库得改脚本了
+dbPath="datadir"
