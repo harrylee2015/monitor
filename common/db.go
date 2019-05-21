@@ -27,8 +27,10 @@ var (
 	QueryResourceInfo            = "SELECT * FROM ResourceInfo WHERE hostId=? ORDER BY createTime DESC limit ?"
 	QueryMonitorSql              = "SELECT * FROM Monitor WHERE groupId=? ORDER BY hostId ASC"
 	QueryBalanceSql              = "SELECT * FROM Balance WHERE groupId=? ORDER BY createTime ASC"
-	QueryWarningCount            = "SELECT COUNT(*) FROM Warning WHERE isClosed=0 "
-	QueryWarningByGroupId        = "SELECT * FROM Warning WHERE isClosed=0 AND groupId=? ORDER BY createTime ASC"
+	QueryBusWarningCount         = "SELECT COUNT(*) FROM Warning WHERE isClosed=0  AND groupId=? AND type IN ( 4, 5 )"
+	QueryResWarningCount         = "SELECT COUNT(*) FROM Warning WHERE isClosed=0  AND groupId=? AND type IN ( 1, 2, 3 )"
+	QueryBusWarningByGroupId     = "SELECT * FROM Warning WHERE isClosed=0 AND groupId=? AND type IN ( 4, 5 ) ORDER BY createTime ASC"
+	QueryResWarningByHostId      = "SELECT * FROM Warning WHERE isClosed=0 AND hostId=? AND type IN ( 1, 2, 3 ) ORDER BY createTime ASC"
 	QueryHistoryWarning          = "SELECT * FROM Warning WHERE isClosed=1 ORDER BY createTime DESC LIMIT ? OFFSET ? "
 
 	UpdateGroupInfoSql      = "UPDATE GroupInfo SET groupName=?,describle=?,title=? WHERE groupId=?"
@@ -291,15 +293,37 @@ func (mdb *MonitorDB) QueryBalance(groupId int64) (items []*model.Balance) {
 	return items
 }
 
-//QueryWarningByGroupId
+//QueryBusWarningByGroupId
 func (mdb *MonitorDB) QueryWarningByGroupId(groupId int64) (items []*model.Warning) {
 	mdb.Lock()
 	defer mdb.Unlock()
-	stmt, err := mdb.db.Prepare(QueryWarningByGroupId)
+	stmt, err := mdb.db.Prepare(QueryBusWarningByGroupId)
 	checkErr(err)
 	defer stmt.Close()
 
 	rows, err := stmt.Query(groupId)
+	checkErr(err)
+	defer stmt.Close()
+	defer rows.Close()
+	for rows.Next() {
+		value := model.Warning{}
+		//TODO:这里应该是字段一一对应关系
+		err := rows.Scan(&value.ID, &value.HostID, &value.GroupID, &value.Type, &value.Warning, &value.BlockHeight, &value.CreateTime, &value.IsClosed, &value.UpdateTime)
+		checkErr(err)
+		items = append(items, &value)
+	}
+	return items
+}
+
+//QueryResWarningByHostId
+func (mdb *MonitorDB) QueryWarningByHostId(hostId int64) (items []*model.Warning) {
+	mdb.Lock()
+	defer mdb.Unlock()
+	stmt, err := mdb.db.Prepare(QueryResWarningByHostId)
+	checkErr(err)
+	defer stmt.Close()
+
+	rows, err := stmt.Query(hostId)
 	checkErr(err)
 	defer stmt.Close()
 	defer rows.Close()
@@ -335,14 +359,32 @@ func (mdb *MonitorDB) QueryHistoryWarning(page *model.Page) (items []*model.Warn
 	return items
 }
 
-func (mdb *MonitorDB) QueryWarningCount() (count int64) {
+func (mdb *MonitorDB) QueryBusWarningCount(groupId int64) (count int64) {
 	mdb.Lock()
 	defer mdb.Unlock()
-	stmt, err := mdb.db.Prepare(QueryWarningCount)
+	stmt, err := mdb.db.Prepare(QueryBusWarningCount)
 	checkErr(err)
 	defer stmt.Close()
 
-	rows, err := stmt.Query()
+	rows, err := stmt.Query(groupId)
+	checkErr(err)
+	defer stmt.Close()
+	defer rows.Close()
+	for rows.Next() {
+		err := rows.Scan(&count)
+		checkErr(err)
+	}
+	return count
+}
+
+func (mdb *MonitorDB) QueryResWarningCount(groupId int64) (count int64) {
+	mdb.Lock()
+	defer mdb.Unlock()
+	stmt, err := mdb.db.Prepare(QueryResWarningCount)
+	checkErr(err)
+	defer stmt.Close()
+
+	rows, err := stmt.Query(groupId)
 	checkErr(err)
 	defer stmt.Close()
 	defer rows.Close()
@@ -498,5 +540,63 @@ func (mdb *MonitorDB) DeleteDataByHostId(hostId int64) {
 	err = tx.Commit()
 	if err != nil {
 		panic(err)
+	}
+}
+func (mdb *MonitorDB) DeleteAddressByGroupId(groupId int64) {
+	mdb.Lock()
+	defer mdb.Unlock()
+	// 因为操作两个表，这是一个事务操作
+	tx, err := mdb.db.Begin()
+	checkErr(err)
+	stmt, err := tx.Prepare(DelPaymentAddressByGroupId)
+	checkErr(err)
+	res, err := stmt.Exec(groupId)
+	checkErr(err)
+	affect, err := res.RowsAffected()
+	checkErr(err)
+	if affect != 1 {
+		panic("Delete data error!")
+	}
+	//DelBalanceByGroupId
+	stmt, err = tx.Prepare(DelBalanceByGroupId)
+	checkErr(err)
+	res, err = stmt.Exec(groupId)
+	checkErr(err)
+	affect, err = res.RowsAffected()
+	checkErr(err)
+	if affect != 1 {
+		panic("Delete data error!")
+	}
+	err = tx.Commit()
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (mdb *MonitorDB) DeleteBalanceByTime(time int64) {
+	mdb.Lock()
+	defer mdb.Unlock()
+	stmt, err := mdb.db.Prepare(DelBalanceByTime)
+	checkErr(err)
+	res, err := stmt.Exec(time)
+	checkErr(err)
+	affect, err := res.RowsAffected()
+	checkErr(err)
+	if affect != 1 {
+		panic("Delete data error!")
+	}
+}
+
+func (mdb *MonitorDB) DelResourceInfoByTime(time int64) {
+	mdb.Lock()
+	defer mdb.Unlock()
+	stmt, err := mdb.db.Prepare(DelResourceInfoByTime)
+	checkErr(err)
+	res, err := stmt.Exec(time)
+	checkErr(err)
+	affect, err := res.RowsAffected()
+	checkErr(err)
+	if affect != 1 {
+		panic("Delete data error!")
 	}
 }

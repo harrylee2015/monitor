@@ -75,3 +75,7 @@ type Warning struct {
 	IsClosed    int64
 	UpdateTime  int64
 }
+type Page struct {
+	PageNum  int64 `json:"pageNum"`
+	PageSize int64 `json:"pageSize"`
+}
