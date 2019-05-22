@@ -1,10 +1,47 @@
-Title="monitor"
+version="1.0"
 
-[monitor]
+[database]
+# 数据存储目录,这个配置不要改，不然初始化数据库得改脚本了
+dbPath="datadir"
+datasource="root:fuzamei@tcp(127.0.0.1)/adeploy?parseTime=true"
+
+
+[sysmonitor]
 
 # 主链RPC
 mainChain = "10.0.0.13:8802"
 
+collectMonitorCycle = 15
 
-# 数据存储目录,这个配置不要改，不然初始化数据库得改脚本了
-dbPath="datadir"
+collectResourceCycle = 15
+
+collectBalanceCycle = 15
+
+resourceDataHoldTime = 2592000
+
+balanceDataHoldTime = 2592000
+
+clearDataCycle = 3600
+
+
+
+[log]
+# 日志级别，支持debug(dbug)/info/warn/error(eror)/crit
+loglevel = "debug"
+logConsoleLevel = "info"
+# 日志文件名，可带目录，所有生成的日志文件都放到此目录下
+logFile = "logs/chain33.log"
+# 单个日志文件的最大值（单位：兆）
+maxFileSize = 300
+# 最多保存的历史日志文件个数
+maxBackups = 100
+# 最多保存的历史日志消息（单位：天）
+maxAge = 28
+# 日志文件名是否使用本地事件（否则使用UTC时间）
+localTime = true
+# 历史日志文件是否压缩（压缩格式为gz）
+compress = true
+# 是否打印调用源文件和行号
+callerFile = false
+# 是否打印调用方法
+callerFunction = false

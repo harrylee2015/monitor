@@ -31,3 +31,7 @@ func GetDB() *common.MonitorDB {
 	panic(fmt.Errorf("can't get db!"))
 	return nil
 }
+
+func CloseDB() {
+	GetDB().Close()
+}

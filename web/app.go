@@ -6,6 +6,7 @@ import (
 	"github.com/kataras/iris/context"
 
 	"github.com/harrylee2015/monitor/web/view/hostmgr"
+	"github.com/harrylee2015/monitor/web/view/taskmgr"
 )
 
 type WebServer struct {
@@ -23,35 +24,14 @@ func NewWebServer(addr string) *WebServer {
 
 func (server *WebServer) Start() {
 	server.init()
+	//crontab task
+	go taskmgr.CronTask()
 
 	server.app.Logger().SetLevel("debug")
 	server.app.Run(iris.Addr(server.addr))
 }
 
 func (s *WebServer) init() {
-	// 使用Django视图渲染引擎
-	//s.app.RegisterView(iris.Django("./web/templates", ".html").Reload(true))
-
-	// 注册静态资源访问路径
-	//s.app.StaticWeb("/static", "./web/static")
-	//s.app.StaticWeb("/", "./web/auto-deploy")
-
-	//s.app.Use(func(ctx iris.Context) {
-	//	fmt.Println(fmt.Sprintf("Process request: %s %s", ctx.Method(), ctx.Path()))
-	//
-	//
-	//	secs := strings.Split(ctx.Path(), "/")
-	//	if len(secs) > 1 {
-	//		ctx.ViewData("nav", secs[1])
-	//	}
-	//	ctx.Next()
-	//})
-	//
-	//s.app.OnAnyErrorCode(func(ctx iris.Context) {
-	//	ctx.ViewData("error", ctx.Values().
-	//		GetStringDefault("message", "The page you're looking for doesn't exist"))
-	//	ctx.View("error.html")
-	//})
 
 	// 注册访问路由
 	s.route("GET", "/", index)

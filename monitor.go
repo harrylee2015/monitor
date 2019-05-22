@@ -7,6 +7,7 @@ import (
 	"sync"
     "github.com/BurntSushi/toml"
 	"github.com/harrylee2015/monitor/model"
+	"github.com/harrylee2015/monitor/web"
 )
 
 var (
@@ -20,6 +21,13 @@ func main() {
 	if _,err := toml.DecodeFile("monitor.toml",&cfg);err !=nil{
 		panic(err)
 	}
+
+	model.RegisterDB()
+
+	server :=web.NewWebServer(":8080")
+	server.Start()
+
+	model.CloseDB()
 }
 
 func pwd() string {
