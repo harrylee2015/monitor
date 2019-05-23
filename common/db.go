@@ -26,6 +26,7 @@ var (
 	QueryPaymentAddress          = "SELECT * FROM PaymentAddress WHERE groupId=?"
 	QueryResourceInfo            = "SELECT * FROM ResourceInfo WHERE hostId=? ORDER BY createTime DESC limit ?"
 	QueryMonitorSql              = "SELECT * FROM Monitor WHERE groupId=? ORDER BY hostId ASC"
+	QueryMonitorById             = "SELECT * FROM Monitor WHERE groupId=? AND hostId=?"
 	QueryBalanceSql              = "SELECT * FROM Balance WHERE groupId=? ORDER BY createTime ASC"
 	QueryBusWarningCount         = "SELECT COUNT(*) FROM Warning WHERE isClosed=0  AND groupId=? AND type IN ( 4, 5 )"
 	QueryResWarningCount         = "SELECT COUNT(*) FROM Warning WHERE isClosed=0  AND groupId=? AND type IN ( 1, 2, 3 )"
@@ -36,7 +37,7 @@ var (
 	UpdateGroupInfoSql      = "UPDATE GroupInfo SET groupName=?,describle=?,title=? WHERE groupId=?"
 	UpdatePaymentAddressSql = "UPDATE PaymentAddress SET groupId=?,address=? WHERE id=?"
 	UpdateHostInfoSql       = "UPDATE HostInfo SET hostIp=?,sshPort=?,userName=?,passWd=?,isCheckResource=?,processName=?,serverPort=?,updateTime=? WHERE hostId=?"
-	UpdateMonitorSql        = "UPDATE Monitor SET hostIp=?,serverPort=?,lastBlockHeight=?,isSync=?,lastBlockHash=?,updateTime=? WHERE hostId=?"
+	UpdateMonitorSql        = "UPDATE Monitor SET hostIp=?,serverPort=?,lastBlockHeight=?,isSync=?,lastBlockHash=?,updateTime=? WHERE groupId =? AND hostId=?"
 	UpdateWarningSql        = "UPDATE Warning SET isClosed=?,updateTime=? WHERE id=?"
 
 	DelGroupInfoSql            = "DELETE FROM GroupInfo WHERE groupId=?"
@@ -271,6 +272,27 @@ func (mdb *MonitorDB) QueryMonitor(groupId int64) (items []*model.Monitor) {
 	return items
 }
 
+func (mdb *MonitorDB) QueryMonitorById(groupId, hostId int64) (items []*model.Monitor) {
+	mdb.Lock()
+	defer mdb.Unlock()
+	stmt, err := mdb.db.Prepare(QueryMonitorById)
+	checkErr(err)
+	defer stmt.Close()
+
+	rows, err := stmt.Query(groupId, hostId)
+	checkErr(err)
+	defer stmt.Close()
+	defer rows.Close()
+	for rows.Next() {
+		value := model.Monitor{}
+		//TODO:这里应该是字段一一对应关系
+		err := rows.Scan(&value.ID, &value.GroupID, &value.HostID, &value.HostIp, &value.ServerPort, &value.LastBlockHeight, &value.IsSync, &value.LastBlockHash, &value.UpdateTime)
+		checkErr(err)
+		items = append(items, &value)
+	}
+	return items
+}
+
 //QueryBalanceSql
 func (mdb *MonitorDB) QueryBalance(groupId int64) (items []*model.Balance) {
 	mdb.Lock()
@@ -426,7 +448,7 @@ func (mdb *MonitorDB) UpdateData(data interface{}) {
 	}
 	//UpdateMonitorSql
 	if g, ok := data.(*model.Monitor); ok {
-		mdb.updateData(UpdateMonitorSql, g.HostIp, g.ServerPort, g.LastBlockHeight, g.IsSync, g.LastBlockHash, time.Now().Unix(), g.HostID)
+		mdb.updateData(UpdateMonitorSql, g.HostIp, g.ServerPort, g.LastBlockHeight, g.IsSync, g.LastBlockHash, time.Now().Unix(), g.GroupID, g.HostID)
 		return
 	}
 	//UpdateWarningSql

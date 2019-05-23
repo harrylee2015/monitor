@@ -6,7 +6,13 @@ import (
 )
 
 const (
-	DBNAME = "SQLITE3"
+	DBNAME       = "SQLITE3"
+	WARNING_TYPE = int64(iota)
+	MEM_wARNING
+	CPU_WARING
+	DISK_WARING
+	BALANCE_WARING
+	HASH_WARING
 )
 
 var (

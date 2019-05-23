@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"github.com/harrylee2015/monitor/common"
 	"github.com/harrylee2015/monitor/model"
+	"time"
 )
 
 func getJrpc(ip string, port int64) string {
 	return fmt.Sprintf("http://%s:%v", ip, port)
 }
-//type IsTrue = func(flag  bool) int64;
 
+//type IsTrue = func(flag  bool) int64;
 
 func collectMonitorData(db *common.MonitorDB) {
 	page := &model.Page{
@@ -38,13 +39,22 @@ func collectMonitorData(db *common.MonitorDB) {
 				ServerPort:      item.ServerPort,
 				LastBlockHeight: lastHeader.Height,
 				LastBlockHash:   lastHeader.Hash,
-				IsSync: func(flag bool)int64{ if flag{
-					return 0
-				}else {
-					return 1
-				}}(isSync) ,
+				IsSync: func(flag bool) int64 {
+					if flag {
+						return 0
+					} else {
+						return 1
+					}
+				}(isSync),
 			}
-			db.UpdateData(monitor)
+			values := db.QueryMonitorById(item.GroupID, item.HostID)
+			if len(values) == 0 {
+				db.InsertData(monitor)
+
+			} else {
+				db.UpdateData(monitor)
+			}
+
 		}
 
 		if len(items) < 10 {
@@ -100,8 +110,12 @@ func collectResourceData(db *common.MonitorDB) {
 }
 
 func clearResourceData(db *common.MonitorDB) {
-	//TODO
+	now := time.Now().Unix()
+	lastTime := now - model.ResourceDataHoldTime
+	db.DelResourceInfoByTime(lastTime)
 }
 func clearBalanceData(db *common.MonitorDB) {
-	//TODO
+	now := time.Now().Unix()
+	lastTime := now - model.BalanceDataHoldTime
+	db.DeleteBalanceByTime(lastTime)
 }

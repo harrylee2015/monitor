@@ -53,7 +53,7 @@ func clearResourceTable(db *common.MonitorDB, group *sync.WaitGroup) {
 	tick := time.Tick(time.Duration(model.ClearDataCycle) * time.Second)
 	for {
 		<-tick
-		//TODO
+		clearResourceData(db)
 	}
 	defer group.Done()
 }
@@ -61,7 +61,7 @@ func clearBalanceTable(db *common.MonitorDB, group *sync.WaitGroup) {
 	tick := time.Tick(time.Duration(model.ClearDataCycle) * time.Second)
 	for {
 		<-tick
-		//TODO
+		clearBalanceData(db)
 	}
 	defer group.Done()
 }

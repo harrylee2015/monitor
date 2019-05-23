@@ -108,10 +108,22 @@ CREATE INDEX 'IDX_ResourceInfo'
   ON 'ResourceInfo' ('hostId' ASC)
 ;
 
+CREATE INDEX 'IDX_Balance'
+  ON 'Balance' ('createTime' ASC)
+;
+
+CREATE INDEX 'IDX_Balance_Time'
+  ON 'Balance' ('groupId' ASC)
+;
+
+CREATE INDEX 'IDX_ResourceInfo_Time'
+  ON 'ResourceInfo' ('createTime' ASC)
+;
+
 CREATE INDEX 'IDX_Monitor'
- ON 'Monitor' ('groupId' ASC)
+ ON 'Monitor' ('groupId','hostId' ASC)
 ;
 
 CREATE INDEX 'IDX_Warning'
-  ON 'Warning' ('groupId' ASC)
+  ON 'Warning' ('groupId','hostId' ASC)
 ;
