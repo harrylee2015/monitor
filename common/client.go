@@ -9,7 +9,7 @@ import (
 	log "github.com/inconshreveable/log15"
 
 	jsonrpc "github.com/harrylee2015/monitor/common/rpc"
-	"gitlab.33.cn/chain33/chain33/types"
+	"github.com/33cn/chain33/types"
 	"io/ioutil"
 	"net/http"
 	"os"
