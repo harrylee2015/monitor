@@ -44,7 +44,7 @@ func (s *WebServer) init() {
 
 // 添加主机组管理路由信息
 func (s *WebServer) routeHostGroupmgr() {
-	// 分组列表
+	// 分页查看分组信息
 	s.route("POST", "/hostmgr/group", hostmgr.ListHostGroups)
 	// 查看单个分组
 	//s.route("GET", "/hostmgr/group/{id:int}", hostmgr.GetHostGroup)
@@ -57,7 +57,7 @@ func (s *WebServer) routeHostGroupmgr() {
 }
 
 func (s *WebServer) routeHostmgr() {
-	// 主机列表
+	// 分页查看主机信息
 	s.route("POST", "/hostmgr", hostmgr.ListHosts)
 	// 查看单个主机
 	//s.route("GET", "/hostmgr/{id:int}", hostmgr.GetHost)
@@ -70,32 +70,39 @@ func (s *WebServer) routeHostmgr() {
 }
 
 func (s *WebServer) routeAddressmgr() {
-	// 主机列表
+	//分页查看代扣地址信息
 	s.route("POST", "/addressmgr", hostmgr.ListAddress)
 
-	// 创建主机
+	//添加代扣地址信息
 	s.route("POST", "/addressmgr", hostmgr.AddAddress)
-	// 修改主机
+	//修改代扣地址信息
 	s.route("POST", "/addressmgr", hostmgr.UpdateAddress)
-	// 删除单个主机
+	//删除代扣地址信息
 	s.route("DELETE", "/addressmgr/{groupId:int}", hostmgr.DeleteAddress)
 }
 
 func (s *WebServer) routeMonitormgr() {
-	// 主机列表
+	// 根据groupId查看monitor信息
 	s.route("GET", "/monitormgr/{groupId:int}", hostmgr.ListMonitors)
+	// 统计业务告警信息总数
 	s.route("GET", "/monitormgr/buswarningcount/{groupId:int}", hostmgr.GetBusWaringCount)
+	// 统计资源告警信息总数
 	s.route("GET", "/monitormgr/reswarningcount/{groupId:int}", hostmgr.GetResWaringCount)
-
+	// 根据groupId查看业务告警信息
 	s.route("GET", "/monitormgr/buswarning/{groupId:int}", hostmgr.GetBusWaringByGroupId)
+	// 根据hostId查看资源告警信息
 	s.route("GET", "/monitormgr/reswarning/{hostId:int}", hostmgr.GetResWaringByHostId)
-
+	// 移除告警
 	s.route("POST", "/monitormgr/warning/remove", hostmgr.DeletewarningById)
+	// 批量移除告警
 	s.route("POST", "/monitormgr/warning/batchremove", hostmgr.DeletewarningByList)
+	// 分页查看历史告警
 	s.route("POST", "/monitormgr/warning/history", hostmgr.GetHistoryWarning)
-
+	//根据groupId查看余额信息
 	s.route("GET", "/monitormgr/balance/{groupId:int}", hostmgr.GetPaymentAddressBalance)
+	//根据时间段查看地址余额信息
 	s.route("GET", "/monitormgr/balancelist/{groupId:int}", hostmgr.GetBalanceListByTime)
+	//根据时间段查看节点资源信息
 	s.route("GET", "/monitormgr/resourcelist/{hostId:int}", hostmgr.ListResource)
 }
 
