@@ -2,6 +2,7 @@ package hostmgr
 
 import (
 	"github.com/harrylee2015/monitor/model"
+	"github.com/harrylee2015/monitor/types"
 	. "github.com/harrylee2015/monitor/web/view/webutil"
 	"github.com/kataras/iris"
 )
@@ -12,7 +13,7 @@ func ListMonitors(ctx iris.Context) {
 		ClientErr(ctx, err)
 		return
 	}
-	items := model.GetDB().QueryMonitor(id)
+	items := types.GetDB().QueryMonitor(id)
 	ctx.JSON(items)
 }
 
@@ -22,7 +23,7 @@ func GetBusWaringCount(ctx iris.Context) {
 		ClientErr(ctx, err)
 		return
 	}
-	count := model.GetDB().QueryBusWarningCount(id)
+	count := types.GetDB().QueryBusWarningCount(id)
 	ctx.JSON(count)
 }
 
@@ -32,7 +33,7 @@ func GetBusWaringByGroupId(ctx iris.Context) {
 		ClientErr(ctx, err)
 		return
 	}
-	items := model.GetDB().QueryWarningByGroupId(id)
+	items := types.GetDB().QueryWarningByGroupId(id)
 	ctx.JSON(items)
 }
 
@@ -42,7 +43,7 @@ func DeletewarningById(ctx iris.Context) {
 		ClientErr(ctx, err)
 		return
 	}
-	model.GetDB().UpdateData(warning)
+	types.GetDB().UpdateData(warning)
 	ServOK(ctx)
 }
 
@@ -53,7 +54,7 @@ func DeletewarningByList(ctx iris.Context) {
 		return
 	}
 	for _, warning := range list {
-		model.GetDB().UpdateData(&warning)
+		types.GetDB().UpdateData(&warning)
 	}
 	ServOK(ctx)
 }
@@ -65,7 +66,7 @@ func GetPaymentAddressBalance(ctx iris.Context) {
 		return
 	}
 	//TODO:
-	count := model.GetDB().QueryBusWarningCount(id)
+	count := types.GetDB().QueryBusWarningCount(id)
 	ctx.JSON(count)
 }
 
@@ -76,7 +77,7 @@ func GetBalanceListByTime(ctx iris.Context) {
 		return
 	}
 	//TODO:
-	items := model.GetDB().QueryBalance(id)
+	items := types.GetDB().QueryBalance(id)
 	ctx.JSON(items)
 }
 func GetHistoryWarning(ctx iris.Context) {
@@ -85,6 +86,6 @@ func GetHistoryWarning(ctx iris.Context) {
 		ClientErr(ctx, err)
 		return
 	}
-	items := model.GetDB().QueryHistoryWarning(&page)
+	items := types.GetDB().QueryHistoryWarning(&page)
 	ctx.JSON(items)
 }

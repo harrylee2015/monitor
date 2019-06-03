@@ -6,6 +6,7 @@
 
 SRC := github.com/harrylee2015/monitor/
 APP := build/monitor
+GOUTIL := build/gopsutil
 LDFLAGS := -ldflags "-w -s"
 PKG_LIST := `go list ./... | grep -v "vendor" | grep -v "test" | grep -v "mocks"
 BUILD_FLAGS = -ldflags

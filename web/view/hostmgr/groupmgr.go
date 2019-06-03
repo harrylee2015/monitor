@@ -2,6 +2,7 @@ package hostmgr
 
 import (
 	"github.com/harrylee2015/monitor/model"
+	"github.com/harrylee2015/monitor/types"
 	. "github.com/harrylee2015/monitor/web/view/webutil"
 	"github.com/kataras/iris"
 )
@@ -12,7 +13,7 @@ func ListHostGroups(ctx iris.Context) {
 		ClientErr(ctx, err)
 		return
 	}
-	items := model.GetDB().QueryGroupInfoByPageNum(&page)
+	items := types.GetDB().QueryGroupInfoByPageNum(&page)
 	ctx.JSON(items)
 }
 
@@ -22,7 +23,7 @@ func AddHostGroup(ctx iris.Context) {
 		ClientErr(ctx, err)
 		return
 	}
-	model.GetDB().InsertData(&group)
+	types.GetDB().InsertData(&group)
 	ServOK(ctx)
 }
 
@@ -32,7 +33,7 @@ func UpdateHostGroup(ctx iris.Context) {
 		ClientErr(ctx, err)
 		return
 	}
-	model.GetDB().UpdateData(&group)
+	types.GetDB().UpdateData(&group)
 	ServOK(ctx)
 }
 
@@ -42,6 +43,6 @@ func DeleteHostGroup(ctx iris.Context) {
 		ClientErr(ctx, err)
 		return
 	}
-	model.GetDB().DeleteDataByGroupId(id)
+	types.GetDB().DeleteDataByGroupId(id)
 	ServOK(ctx)
 }

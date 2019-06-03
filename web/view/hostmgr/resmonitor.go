@@ -1,7 +1,7 @@
 package hostmgr
 
 import (
-	"github.com/harrylee2015/monitor/model"
+	"github.com/harrylee2015/monitor/types"
 	. "github.com/harrylee2015/monitor/web/view/webutil"
 	"github.com/kataras/iris"
 )
@@ -13,7 +13,7 @@ func ListResource(ctx iris.Context) {
 		return
 	}
 	//TODO
-	items := model.GetDB().QueryResourceInfo(id, 100)
+	items := types.GetDB().QueryResourceInfo(id, 100)
 	ctx.JSON(items)
 }
 
@@ -23,7 +23,7 @@ func GetResWaringCount(ctx iris.Context) {
 		ClientErr(ctx, err)
 		return
 	}
-	count := model.GetDB().QueryResWarningCount(id)
+	count := types.GetDB().QueryResWarningCount(id)
 	ctx.JSON(count)
 }
 
@@ -33,6 +33,6 @@ func GetResWaringByHostId(ctx iris.Context) {
 		ClientErr(ctx, err)
 		return
 	}
-	items := model.GetDB().QueryWarningByHostId(id)
+	items := types.GetDB().QueryWarningByHostId(id)
 	ctx.JSON(items)
 }

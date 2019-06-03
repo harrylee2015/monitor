@@ -1,14 +1,15 @@
 package taskmgr
 
 import (
-	"github.com/harrylee2015/monitor/common"
-	"github.com/harrylee2015/monitor/model"
+	"github.com/harrylee2015/monitor/common/db"
+	"github.com/harrylee2015/monitor/conf"
+	"github.com/harrylee2015/monitor/types"
 	"sync"
 	"time"
 )
 
 func CronTask() {
-	db := model.GetDB()
+	db := types.GetDB()
 	var group sync.WaitGroup
 	group.Add(5)
 	go collectMonitor(db, &group)
@@ -25,40 +26,40 @@ func CronTask() {
 
 }
 
-func collectMonitor(db *common.MonitorDB, group *sync.WaitGroup) {
-	tick := time.Tick(time.Duration(model.CollectMonitorCycle) * time.Second)
+func collectMonitor(db *db.MonitorDB, group *sync.WaitGroup) {
+	tick := time.Tick(time.Duration(conf.CollectMonitorCycle) * time.Second)
 	for {
 		<-tick
 		collectMonitorData(db)
 	}
 	defer group.Done()
 }
-func collectResource(db *common.MonitorDB, group *sync.WaitGroup) {
-	tick := time.Tick(time.Duration(model.CollectResourceCycle) * time.Second)
+func collectResource(db *db.MonitorDB, group *sync.WaitGroup) {
+	tick := time.Tick(time.Duration(conf.CollectResourceCycle) * time.Second)
 	for {
 		<-tick
-		//TODO
+		collectResourceData(db)
 	}
 	defer group.Done()
 }
-func collectBalance(db *common.MonitorDB, group *sync.WaitGroup) {
-	tick := time.Tick(time.Duration(model.CollectBalanceCycle) * time.Second)
+func collectBalance(db *db.MonitorDB, group *sync.WaitGroup) {
+	tick := time.Tick(time.Duration(conf.CollectBalanceCycle) * time.Second)
 	for {
 		<-tick
 		collectBalanceData(db)
 	}
 	defer group.Done()
 }
-func clearResourceTable(db *common.MonitorDB, group *sync.WaitGroup) {
-	tick := time.Tick(time.Duration(model.ClearDataCycle) * time.Second)
+func clearResourceTable(db *db.MonitorDB, group *sync.WaitGroup) {
+	tick := time.Tick(time.Duration(conf.ClearDataCycle) * time.Second)
 	for {
 		<-tick
 		clearResourceData(db)
 	}
 	defer group.Done()
 }
-func clearBalanceTable(db *common.MonitorDB, group *sync.WaitGroup) {
-	tick := time.Tick(time.Duration(model.ClearDataCycle) * time.Second)
+func clearBalanceTable(db *db.MonitorDB, group *sync.WaitGroup) {
+	tick := time.Tick(time.Duration(conf.ClearDataCycle) * time.Second)
 	for {
 		<-tick
 		clearBalanceData(db)

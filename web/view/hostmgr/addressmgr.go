@@ -2,6 +2,7 @@ package hostmgr
 
 import (
 	"github.com/harrylee2015/monitor/model"
+	"github.com/harrylee2015/monitor/types"
 	. "github.com/harrylee2015/monitor/web/view/webutil"
 	"github.com/kataras/iris"
 )
@@ -12,7 +13,7 @@ func ListAddress(ctx iris.Context) {
 		ClientErr(ctx, err)
 		return
 	}
-	items := model.GetDB().QueryPaymentAddressByPageNum(&page)
+	items := types.GetDB().QueryPaymentAddressByPageNum(&page)
 	ctx.JSON(items)
 }
 
@@ -22,7 +23,7 @@ func AddAddress(ctx iris.Context) {
 		ClientErr(ctx, err)
 		return
 	}
-	model.GetDB().InsertData(&addr)
+	types.GetDB().InsertData(&addr)
 	ServOK(ctx)
 }
 
@@ -32,7 +33,7 @@ func UpdateAddress(ctx iris.Context) {
 		ClientErr(ctx, err)
 		return
 	}
-	model.GetDB().UpdateData(&addr)
+	types.GetDB().UpdateData(&addr)
 	ServOK(ctx)
 }
 
@@ -42,6 +43,6 @@ func DeleteAddress(ctx iris.Context) {
 		ClientErr(ctx, err)
 		return
 	}
-	model.GetDB().DeleteAddressByGroupId(id)
+	types.GetDB().DeleteAddressByGroupId(id)
 	ServOK(ctx)
 }

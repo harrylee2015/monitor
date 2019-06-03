@@ -2,12 +2,13 @@ package main
 
 import (
 	"flag"
+	"github.com/BurntSushi/toml"
+	"github.com/harrylee2015/monitor/conf"
+	"github.com/harrylee2015/monitor/types"
+	"github.com/harrylee2015/monitor/web"
 	"os"
 	"path/filepath"
 	"sync"
-    "github.com/BurntSushi/toml"
-	"github.com/harrylee2015/monitor/model"
-	"github.com/harrylee2015/monitor/web"
 )
 
 var (
@@ -17,17 +18,18 @@ var (
 )
 
 func main() {
-	var cfg model.Config
-	if _,err := toml.DecodeFile("monitor.toml",&cfg);err !=nil{
+	conf.CurrDir = pwd()
+	var cfg conf.Config
+	if _, err := toml.DecodeFile("monitor.toml", &cfg); err != nil {
 		panic(err)
 	}
 
-	model.RegisterDB()
+	types.RegisterDB()
 
-	server :=web.NewWebServer(":8080")
+	server := web.NewWebServer(":8080")
 	server.Start()
 
-	model.CloseDB()
+	types.CloseDB()
 }
 
 func pwd() string {
