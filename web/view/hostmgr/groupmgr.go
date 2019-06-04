@@ -1,6 +1,7 @@
 package hostmgr
 
 import (
+	"fmt"
 	"github.com/harrylee2015/monitor/model"
 	"github.com/harrylee2015/monitor/types"
 	. "github.com/harrylee2015/monitor/web/view/webutil"
@@ -23,6 +24,7 @@ func AddHostGroup(ctx iris.Context) {
 		ClientErr(ctx, err)
 		return
 	}
+	fmt.Println("group===========:",group)
 	types.GetDB().InsertData(&group)
 	ServOK(ctx)
 }

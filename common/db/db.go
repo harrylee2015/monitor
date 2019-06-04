@@ -614,11 +614,11 @@ func (mdb *MonitorDB) DeleteBalanceByTime(time int64) {
 	checkErr(err)
 	res, err := stmt.Exec(time)
 	checkErr(err)
-	affect, err := res.RowsAffected()
+	_, err = res.RowsAffected()
 	checkErr(err)
-	if affect != 1 {
-		panic("Delete data error!")
-	}
+	//if affect != 1 {
+	//	panic("Delete data error!")
+	//}
 }
 
 func (mdb *MonitorDB) DelResourceInfoByTime(time int64) {
@@ -628,9 +628,9 @@ func (mdb *MonitorDB) DelResourceInfoByTime(time int64) {
 	checkErr(err)
 	res, err := stmt.Exec(time)
 	checkErr(err)
-	affect, err := res.RowsAffected()
+	_, err = res.RowsAffected()
 	checkErr(err)
-	if affect != 1 {
-		panic("Delete data error!")
-	}
+	//if affect != 1 {
+	//	panic("Delete data error!")
+	//}
 }

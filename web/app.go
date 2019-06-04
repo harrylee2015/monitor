@@ -45,45 +45,45 @@ func (s *WebServer) init() {
 // 添加主机组管理路由信息
 func (s *WebServer) routeHostGroupmgr() {
 	// 分页查看分组信息
-	s.route("POST", "/hostmgr/group", hostmgr.ListHostGroups)
+	s.route("POST", "/hostgroup/list", hostmgr.ListHostGroups)
 	// 查看单个分组
 	//s.route("GET", "/hostmgr/group/{id:int}", hostmgr.GetHostGroup)
 	// 创建分组
-	s.route("POST", "/hostmgr/group", hostmgr.AddHostGroup)
+	s.route("POST", "/hostgroup/add", hostmgr.AddHostGroup)
 	// 修改分组
-	s.route("POST", "/hostmgr/group", hostmgr.UpdateHostGroup)
+	s.route("POST", "/hostgroup/update", hostmgr.UpdateHostGroup)
 	// 删除分组
-	s.route("DELETE", "/hostmgr/group/{groupId:int}", hostmgr.DeleteHostGroup)
+	s.route("DELETE", "/hostgroup/delete/{groupId:int}", hostmgr.DeleteHostGroup)
 }
 
 func (s *WebServer) routeHostmgr() {
 	// 分页查看主机信息
-	s.route("POST", "/hostmgr", hostmgr.ListHosts)
+	s.route("POST", "/hostmgr/list", hostmgr.ListHosts)
 	// 查看单个主机
 	//s.route("GET", "/hostmgr/{id:int}", hostmgr.GetHost)
 	// 创建主机
-	s.route("POST", "/hostmgr", hostmgr.AddHost)
+	s.route("POST", "/hostmgr/add", hostmgr.AddHost)
 	// 修改主机
-	s.route("POST", "/hostmgr", hostmgr.UpdateHost)
+	s.route("POST", "/hostmgr/update", hostmgr.UpdateHost)
 	// 删除单个主机
-	s.route("DELETE", "/hostmgr/{hostId:int}", hostmgr.DeleteHost)
+	s.route("DELETE", "/hostmgr/delete/{hostId:int}", hostmgr.DeleteHost)
 }
 
 func (s *WebServer) routeAddressmgr() {
 	//分页查看代扣地址信息
-	s.route("POST", "/addressmgr", hostmgr.ListAddress)
+	s.route("POST", "/addressmgr/list", hostmgr.ListAddress)
 
 	//添加代扣地址信息
-	s.route("POST", "/addressmgr", hostmgr.AddAddress)
+	s.route("POST", "/addressmgr/add", hostmgr.AddAddress)
 	//修改代扣地址信息
-	s.route("POST", "/addressmgr", hostmgr.UpdateAddress)
+	s.route("POST", "/addressmgr/update", hostmgr.UpdateAddress)
 	//删除代扣地址信息
-	s.route("DELETE", "/addressmgr/{groupId:int}", hostmgr.DeleteAddress)
+	s.route("DELETE", "/addressmgr/delete/{groupId:int}", hostmgr.DeleteAddress)
 }
 
 func (s *WebServer) routeMonitormgr() {
 	// 根据groupId查看monitor信息
-	s.route("GET", "/monitormgr/{groupId:int}", hostmgr.ListMonitors)
+	s.route("GET", "/monitormgr/group/{groupId:int}", hostmgr.ListMonitors)
 	// 统计业务告警信息总数
 	s.route("GET", "/monitormgr/buswarningcount/{groupId:int}", hostmgr.GetBusWaringCount)
 	// 统计资源告警信息总数
