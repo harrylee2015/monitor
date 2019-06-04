@@ -1,6 +1,7 @@
 package hostmgr
 
 import (
+	"github.com/harrylee2015/monitor/common/db"
 	"github.com/harrylee2015/monitor/model"
 	"github.com/harrylee2015/monitor/types"
 	. "github.com/harrylee2015/monitor/web/view/webutil"
@@ -14,7 +15,12 @@ func ListHosts(ctx iris.Context) {
 		return
 	}
 	items := types.GetDB().QueryHostInfoByPageNum(&page)
-	ctx.JSON(items)
+	count := types.GetDB().QueryCount(db.Type_Host)
+	list := &model.List{
+		Total:count,
+		Values:items,
+	}
+	ctx.JSON(list)
 }
 
 func AddHost(ctx iris.Context) {

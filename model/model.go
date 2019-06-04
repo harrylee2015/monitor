@@ -30,58 +30,64 @@ type HostInfo struct {
 	UpdateTime      int64  `json:"updateTime"`
 }
 
+//专门用于返回list数据类型
+type List struct {
+	Total  int64       `json:"total"`
+	Values interface{} `json:"values"`
+}
+
 //resourceInfo
 type ResourceInfo struct {
-	ID      int64
-	HostID  int64
-	GroupID int64
+	ID      int64 `json:"id"`
+	HostID  int64 `json:"hostId"`
+	GroupID int64 `json:"groupId"`
 	//单位MB
-	MemTotal       uint64
-	MemUsedPercent float64
+	MemTotal       uint64  `json:"memTotal"`
+	MemUsedPercent float64 `json:"memUsedPercent"`
 	//单位核
-	CpuTotal       uint64
-	CpuUsedPercent float64
+	CpuTotal       uint64  `json:"cpuTotal"`
+	CpuUsedPercent float64 `json:"cpuUsedPercent"`
 	//空间大小单位GB
-	DiskTotal       uint64
-	DiskUsedPercent float64
-	CreateTime      int64
+	DiskTotal       uint64  `json:"diskTotal"`
+	DiskUsedPercent float64 `json:"diskUsedPercent"`
+	CreateTime      int64   `json:"createTime"`
 }
 
 //ServerMonitor
 type Monitor struct {
-	ID              int64
-	HostID          int64
-	GroupID         int64
-	HostIp          string
-	ServerPort      int64
-	LastBlockHeight int64
-	IsSync          int64
-	LastBlockHash   string
-	UpdateTime      int64
+	ID              int64  `json:"id"`
+	HostID          int64  `json:"hostId"`
+	GroupID         int64  `json:"groupId"`
+	HostIp          string `json:"hostIp"`
+	ServerPort      int64  `json:"serverPort"`
+	LastBlockHeight int64  `json:"lastBlockHeight"`
+	IsSync          int64  `json:"isSync"`
+	LastBlockHash   string `json:"lastBlockHash"`
+	UpdateTime      int64  `json:"updateTime"`
 }
 
 //balance
 type Balance struct {
-	ID         int64
-	GroupID    int64
-	Address    string
-	Balance    int64
-	CreateTime int64
+	ID         int64  `json:"id"`
+	GroupID    int64  `json:"groupId"`
+	Address    string `json:"address"`
+	Balance    int64  `json:"balance"`
+	CreateTime int64  `json:"createTime"`
 }
 
 //warning
 type Warning struct {
-	ID      int64
-	HostID  int64
-	GroupID int64
+	ID      int64 `json:"id"`
+	HostID  int64 `json:"hostId"`
+	GroupID int64 `json:"groupId"`
 	//告警类型 1是内存告警，2是cpu超负荷，3是磁盘不足， 4表示代扣地址余额告警，5表示区块不一致告警
-	Type        int64
-	Warning     string
-	BlockHeight int64
-	CreateTime  int64
+	Type        int64  `json:"type"`
+	Warning     string `json:"warning"`
+	BlockHeight int64  `json:"blockHeight"`
+	CreateTime  int64  `json:"createTime"`
 	//是否处理过了 0表示没有处理，1表示处理过了
-	IsClosed   int64
-	UpdateTime int64
+	IsClosed   int64 `json:"isClosed"`
+	UpdateTime int64 `json:"updateTime"`
 }
 type Page struct {
 	PageNum  int64 `json:"pageNum"`

@@ -2,6 +2,7 @@ package hostmgr
 
 import (
 	"fmt"
+	"github.com/harrylee2015/monitor/common/db"
 	"github.com/harrylee2015/monitor/model"
 	"github.com/harrylee2015/monitor/types"
 	. "github.com/harrylee2015/monitor/web/view/webutil"
@@ -15,7 +16,12 @@ func ListHostGroups(ctx iris.Context) {
 		return
 	}
 	items := types.GetDB().QueryGroupInfoByPageNum(&page)
-	ctx.JSON(items)
+	count := types.GetDB().QueryCount(db.Type_Group)
+	list := &model.List{
+		Total:count,
+        Values:items,
+	}
+	ctx.JSON(list)
 }
 
 func AddHostGroup(ctx iris.Context) {

@@ -19,9 +19,14 @@ const (
 	BALANCE_WARING
 	HASH_WARING
 )
+const (
+	Type_Group = iota + 1
+	Type_Host
+	Type_Addr
+)
 
 var (
-	InsertGroupInfoSql      = "INSERT INTO GroupInfo (groupName, describle, title) VALUES (?,?,?)"
+	InsertGroupInfoSql      = "INSERT INTO GroupInfo (groupName, describe, title) VALUES (?,?,?)"
 	InsertPaymentAddressSql = "INSERT INTO PaymentAddress (groupId, address) VALUES (?,?)"
 	InsertHostInfoSql       = "INSERT INTO HostInfo (groupId, hostIp, sshPort,userName,passWd,isCheckResource,processName,serverPort,createTime,updateTime) VALUES (?,?,?,?,?,?,?,?,?,?)"
 	InsertResourceInfoSql   = "INSERT INTO ResourceInfo (groupId, hostId, memTotal,memUsedPercent,cpuTotal,cpuUsedPercent,diskTotal,diskUsedPercent,createTime) VALUES (?,?,?,?,?,?,?,?,?)"
@@ -29,9 +34,12 @@ var (
 	InsertBalanceSql        = "INSERT INTO Balance (groupId, address, balance,createTime) VALUES (?,?,?,?)"
 	InsertWarningSql        = "INSERT INTO Warning (groupId, hostId, type,warning,blockHeight,createTime,isClosed,updateTime) VALUES (?,?,?,?,?,?,?,?)"
 
+	QueryGroupInfoCount          = "SELECT COUNT(*) FROM GroupInfo"
+	QueryHostInfoCount           = "SELECT COUNT(*) FROM HostInfo"
 	QueryGroupInfoByPageNum      = "SELECT * FROM GroupInfo LIMIT ? OFFSET ?"
 	QueryHostInfoByPageNum       = "SELECT * FROM HostInfo LIMIT ? OFFSET ?"
 	QueryHostInfoByGroupId       = "SELECT * FROM HostInfo WHERE groupId=? ORDER BY hostId ASC"
+	QueryPaymentAddressCount     = "SELECT COUNT(*) FROM PaymentAddress"
 	QueryPaymentAddressByPageNum = "SELECT * FROM PaymentAddress LIMIT ? OFFSET ?"
 	QueryPaymentAddress          = "SELECT * FROM PaymentAddress WHERE groupId=?"
 	QueryResourceInfo            = "SELECT * FROM ResourceInfo WHERE hostId=? ORDER BY createTime DESC limit ?"
@@ -133,6 +141,34 @@ func (mdb *MonitorDB) InsertData(data interface{}) {
 		return
 	}
 	panic(fmt.Errorf("unknow type data!,data=%v", data))
+}
+
+//根据类型统计count数量
+func (mdb *MonitorDB) QueryCount(types int) (count int64) {
+	mdb.Lock()
+	defer mdb.Unlock()
+	query := ""
+	switch types {
+	case Type_Group:
+		query = QueryGroupInfoCount
+	case Type_Host:
+		query = QueryHostInfoCount
+	case Type_Addr:
+		query = QueryPaymentAddressCount
+	}
+	stmt, err := mdb.db.Prepare(query)
+	checkErr(err)
+	defer stmt.Close()
+
+	rows, err := stmt.Query()
+	checkErr(err)
+	defer stmt.Close()
+	defer rows.Close()
+	for rows.Next() {
+		err := rows.Scan(&count)
+		checkErr(err)
+	}
+	return count
 }
 
 // QueryGroupInfoByPageNum
