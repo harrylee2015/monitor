@@ -18,11 +18,14 @@ type PaymentAddress struct {
 //hostInfo
 type HostInfo struct {
 	HostID          int64  `json:"hostId"`
+	HostName        string `json:"hostName"`
 	GroupID         int64  `json:"groupId"`
+	GroupName       string `json:"groupName"`
 	HostIp          string `json:"hostIp"`
 	SSHPort         int64  `json:"SSHPort"`
 	UserName        string `json:"userName"`
 	PassWd          string `json:"passWd"`
+	// 0表示不检查节点资源状况 1表示检查
 	IsCheckResource int64  `json:"isCheckResource"`
 	ProcessName     string `json:"processName"`
 	ServerPort      int64  `json:"serverPort"`

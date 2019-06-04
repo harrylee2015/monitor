@@ -28,7 +28,7 @@ const (
 var (
 	InsertGroupInfoSql      = "INSERT INTO GroupInfo (groupName, describe, title) VALUES (?,?,?)"
 	InsertPaymentAddressSql = "INSERT INTO PaymentAddress (groupId, address) VALUES (?,?)"
-	InsertHostInfoSql       = "INSERT INTO HostInfo (groupId, hostIp, sshPort,userName,passWd,isCheckResource,processName,serverPort,createTime,updateTime) VALUES (?,?,?,?,?,?,?,?,?,?)"
+	InsertHostInfoSql       = "INSERT INTO HostInfo (hostName,groupId,groupName, hostIp, sshPort,userName,passWd,isCheckResource,processName,serverPort,createTime,updateTime) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"
 	InsertResourceInfoSql   = "INSERT INTO ResourceInfo (groupId, hostId, memTotal,memUsedPercent,cpuTotal,cpuUsedPercent,diskTotal,diskUsedPercent,createTime) VALUES (?,?,?,?,?,?,?,?,?)"
 	InsertMonitorSql        = "INSERT INTO Monitor (groupId, hostId, hostIp,serverPort,lastBlockHeight,isSync,lastBlockHash,updateTime) VALUES (?,?,?,?,?,?,?,?)"
 	InsertBalanceSql        = "INSERT INTO Balance (groupId, address, balance,createTime) VALUES (?,?,?,?)"
@@ -52,9 +52,9 @@ var (
 	QueryResWarningByHostId      = "SELECT * FROM Warning WHERE isClosed=0 AND hostId=? AND type IN ( 1, 2, 3 ) ORDER BY createTime ASC"
 	QueryHistoryWarning          = "SELECT * FROM Warning WHERE isClosed=1 ORDER BY createTime DESC LIMIT ? OFFSET ? "
 
-	UpdateGroupInfoSql      = "UPDATE GroupInfo SET groupName=?,describle=?,title=? WHERE groupId=?"
+	UpdateGroupInfoSql      = "UPDATE GroupInfo SET groupName=?,describe=?,title=? WHERE groupId=?"
 	UpdatePaymentAddressSql = "UPDATE PaymentAddress SET groupId=?,address=? WHERE id=?"
-	UpdateHostInfoSql       = "UPDATE HostInfo SET hostIp=?,sshPort=?,userName=?,passWd=?,isCheckResource=?,processName=?,serverPort=?,updateTime=? WHERE hostId=?"
+	UpdateHostInfoSql       = "UPDATE HostInfo SET hostName=?,hostIp=?,sshPort=?,userName=?,passWd=?,isCheckResource=?,processName=?,serverPort=?,updateTime=? WHERE hostId=?"
 	UpdateMonitorSql        = "UPDATE Monitor SET hostIp=?,serverPort=?,lastBlockHeight=?,isSync=?,lastBlockHash=?,updateTime=? WHERE groupId =? AND hostId=?"
 	UpdateWarningSql        = "UPDATE Warning SET isClosed=?,updateTime=? WHERE id=?"
 
@@ -137,7 +137,7 @@ func (mdb *MonitorDB) InsertData(data interface{}) {
 		return
 	}
 	if g, ok := data.(*model.HostInfo); ok {
-		mdb.insertData(InsertHostInfoSql, g.GroupID, g.HostIp, g.SSHPort, g.UserName, g.PassWd, g.IsCheckResource, g.ProcessName, g.ServerPort, time.Now().Unix(), time.Now().Unix())
+		mdb.insertData(InsertHostInfoSql, g.HostName, g.GroupID, g.GroupName, g.HostIp, g.SSHPort, g.UserName, g.PassWd, g.IsCheckResource, g.ProcessName, g.ServerPort, time.Now().Unix(), time.Now().Unix())
 		return
 	}
 	panic(fmt.Errorf("unknow type data!,data=%v", data))
@@ -207,7 +207,7 @@ func (mdb *MonitorDB) QueryHostInfoByPageNum(page *model.Page) (items []*model.H
 	for rows.Next() {
 		value := model.HostInfo{}
 		//TODO:这里应该是字段一一对应关系
-		err := rows.Scan(&value.HostID, &value.GroupID, &value.HostIp, &value.SSHPort, &value.UserName, &value.PassWd, &value.IsCheckResource, &value.ProcessName, &value.ServerPort, &value.CreateTime, &value.UpdateTime)
+		err := rows.Scan(&value.HostID, &value.HostName, &value.GroupID, &value.GroupName, &value.HostIp, &value.SSHPort, &value.UserName, &value.PassWd, &value.IsCheckResource, &value.ProcessName, &value.ServerPort, &value.CreateTime, &value.UpdateTime)
 		checkErr(err)
 		items = append(items, &value)
 	}
@@ -491,7 +491,7 @@ func (mdb *MonitorDB) UpdateData(data interface{}) {
 		return
 	}
 	if g, ok := data.(*model.HostInfo); ok {
-		mdb.updateData(UpdateHostInfoSql, g.HostID, g.SSHPort, g.UserName, g.PassWd, g.IsCheckResource, g.ProcessName, g.ServerPort, time.Now().Unix(), g.HostID)
+		mdb.updateData(UpdateHostInfoSql, g.HostName, g.HostID, g.SSHPort, g.UserName, g.PassWd, g.IsCheckResource, g.ProcessName, g.ServerPort, time.Now().Unix(), g.HostID)
 		return
 	}
 	//UpdateMonitorSql
@@ -518,57 +518,45 @@ func (mdb *MonitorDB) DeleteDataByGroupId(groupId int64) {
 	checkErr(err)
 	res, err := stmt.Exec(groupId)
 	checkErr(err)
-	affect, err := res.RowsAffected()
+	_, err = res.RowsAffected()
 	checkErr(err)
-	if affect != 1 {
-		panic("Delete data error!")
-	}
+
 	stmt, err = tx.Prepare(DelPaymentAddressByGroupId)
 	checkErr(err)
 	res, err = stmt.Exec(groupId)
 	checkErr(err)
-	affect, err = res.RowsAffected()
+	_, err = res.RowsAffected()
 	checkErr(err)
-	if affect != 1 {
-		panic("Delete data error!")
-	}
+
 	stmt, err = tx.Prepare(DelHostInfoByGroupId)
 	checkErr(err)
 	res, err = stmt.Exec(groupId)
 	checkErr(err)
-	affect, err = res.RowsAffected()
+	_, err = res.RowsAffected()
 	checkErr(err)
-	if affect != 1 {
-		panic("Delete data error!")
-	}
+
 	stmt, err = tx.Prepare(DelResourceInfoByGroupId)
 	checkErr(err)
 	res, err = stmt.Exec(groupId)
 	checkErr(err)
-	affect, err = res.RowsAffected()
+	_, err = res.RowsAffected()
 	checkErr(err)
-	if affect != 1 {
-		panic("Delete data error!")
-	}
+
 	stmt, err = tx.Prepare(DelMonitorByGroupId)
 	checkErr(err)
 	res, err = stmt.Exec(groupId)
 	checkErr(err)
-	affect, err = res.RowsAffected()
+	_, err = res.RowsAffected()
 	checkErr(err)
-	if affect != 1 {
-		panic("Delete data error!")
-	}
+
 	//DelBalanceByGroupId
 	stmt, err = tx.Prepare(DelBalanceByGroupId)
 	checkErr(err)
 	res, err = stmt.Exec(groupId)
 	checkErr(err)
-	affect, err = res.RowsAffected()
+	_, err = res.RowsAffected()
 	checkErr(err)
-	if affect != 1 {
-		panic("Delete data error!")
-	}
+
 	err = tx.Commit()
 	if err != nil {
 		panic(err)
@@ -584,29 +572,22 @@ func (mdb *MonitorDB) DeleteDataByHostId(hostId int64) {
 	checkErr(err)
 	res, err := stmt.Exec(hostId)
 	checkErr(err)
-	affect, err := res.RowsAffected()
+	_, err = res.RowsAffected()
 	checkErr(err)
-	if affect != 1 {
-		panic("Delete data error!")
-	}
 	stmt, err = tx.Prepare(DelResourceInfoByHostId)
 	checkErr(err)
 	res, err = stmt.Exec(hostId)
 	checkErr(err)
-	affect, err = res.RowsAffected()
+	_, err = res.RowsAffected()
 	checkErr(err)
-	if affect != 1 {
-		panic("Delete data error!")
-	}
+
 	stmt, err = tx.Prepare(DelMonitorByHostId)
 	checkErr(err)
 	res, err = stmt.Exec(hostId)
 	checkErr(err)
-	affect, err = res.RowsAffected()
+	_, err = res.RowsAffected()
 	checkErr(err)
-	if affect != 1 {
-		panic("Delete data error!")
-	}
+
 	err = tx.Commit()
 	if err != nil {
 		panic(err)
@@ -622,21 +603,17 @@ func (mdb *MonitorDB) DeleteAddressByGroupId(groupId int64) {
 	checkErr(err)
 	res, err := stmt.Exec(groupId)
 	checkErr(err)
-	affect, err := res.RowsAffected()
+	_, err = res.RowsAffected()
 	checkErr(err)
-	if affect != 1 {
-		panic("Delete data error!")
-	}
+
 	//DelBalanceByGroupId
 	stmt, err = tx.Prepare(DelBalanceByGroupId)
 	checkErr(err)
 	res, err = stmt.Exec(groupId)
 	checkErr(err)
-	affect, err = res.RowsAffected()
+	_, err = res.RowsAffected()
 	checkErr(err)
-	if affect != 1 {
-		panic("Delete data error!")
-	}
+
 	err = tx.Commit()
 	if err != nil {
 		panic(err)

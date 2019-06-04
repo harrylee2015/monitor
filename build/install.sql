@@ -37,7 +37,9 @@ CREATE TABLE 'PaymentAddress'
 CREATE TABLE 'HostInfo'
 (
   'hostId' INTEGER PRIMARY KEY AUTOINCREMENT,
+  'hostName'  TEXT NOT NULL,
   'groupId' INTEGER NOT NULL,
+  'groupName' TEXT NOT NULL,
   'hostIp' TEXT NOT NULL,
   'sshPort' INTEGER ,
   'userName' TEXT,
