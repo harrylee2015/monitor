@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/BurntSushi/toml"
 	"github.com/harrylee2015/monitor/conf"
 	"github.com/harrylee2015/monitor/types"
@@ -20,10 +21,11 @@ var (
 func main() {
 	conf.CurrDir = pwd()
 	var cfg conf.Config
+	fmt.Println("dir:", conf.CurrDir)
 	if _, err := toml.DecodeFile("monitor.toml", &cfg); err != nil {
 		panic(err)
 	}
-
+	conf.SetConf(&cfg)
 	types.RegisterDB()
 
 	server := web.NewWebServer(":8080")

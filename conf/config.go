@@ -22,7 +22,7 @@ var (
 
 	BalanceWarning = float64(20)
 
-	MainJrpc = ""
+	MainJrpc = "http://192.168.0.194:8801"
 
 	CurrDir = ""
 )
@@ -30,6 +30,7 @@ var (
 type Config struct {
 	Version  string
 	Database DbConfig
+	Monitor  Monitor
 	Log      LogConfig
 }
 
@@ -38,8 +39,8 @@ type DbConfig struct {
 	DbPath     string
 }
 
-type Sysmonitor struct {
-	mainChain string
+type Monitor struct {
+	MainChain string
 
 	CollectMonitorCycle int64
 
@@ -82,4 +83,26 @@ type LogConfig struct {
 	CallerFile bool
 	// 是否打印调用方法
 	CallerFunction bool
+}
+
+func SetConf(conf *Config) {
+	MainJrpc = conf.Monitor.MainChain
+	CollectMonitorCycle = conf.Monitor.CollectMonitorCycle
+	CollectResourceCycle = conf.Monitor.CollectResourceCycle
+
+	CollectBalanceCycle = conf.Monitor.CollectBalanceCycle
+
+	ResourceDataHoldTime = conf.Monitor.ResourceDataHoldTime
+
+	BalanceDataHoldTime = conf.Monitor.BalanceDataHoldTime
+
+	ClearDataCycle = conf.Monitor.ClearDataCycle
+
+	MemUsedPercentWarning = conf.Monitor.MemUsedPercentWarning
+
+	CpuUsedPercentWarning = conf.Monitor.CpuUsedPercentWarning
+
+	DiskUsedPercentWarning = conf.Monitor.DiskUsedPercentWarning
+
+	BalanceWarning = conf.Monitor.BalanceWarning
 }

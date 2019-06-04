@@ -6,11 +6,9 @@ dbPath="datadir"
 datasource="root:fuzamei@tcp(127.0.0.1)/adeploy?parseTime=true"
 
 
-[sysmonitor]
-
+[monitor]
 # 主链RPC
-mainChain = "10.0.0.13:8802"
-
+mainChain = "http://192.168.0.194:8801"
 #监控采集周期
 collectMonitorCycle = 15
 #资源采集周期
@@ -24,14 +22,11 @@ balanceDataHoldTime = 2592000
 #多长时间轮讯清理数据
 clearDataCycle = 3600
 #资源告警伐值
-memUsedPercentWarning = 80
-
-cpuUsedPercentWarning = 80
-
-diskUsedPercentWarning = 80
-
-//余额不足20时告警
-balanceWarning = 20
+memUsedPercentWarning = 80.0
+cpuUsedPercentWarning = 80.0
+diskUsedPercentWarning = 80.0
+#余额不足20时告警
+balanceWarning = 20.0
 
 [log]
 # 日志级别，支持debug(dbug)/info/warn/error(eror)/crit
