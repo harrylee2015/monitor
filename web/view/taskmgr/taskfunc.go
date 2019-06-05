@@ -5,6 +5,7 @@ import (
 	DB "github.com/harrylee2015/monitor/common/db"
 	"github.com/harrylee2015/monitor/common/exec"
 	"github.com/harrylee2015/monitor/common/rpc"
+	"github.com/harrylee2015/monitor/common/sftp"
 	"github.com/harrylee2015/monitor/conf"
 	"github.com/harrylee2015/monitor/model"
 	"github.com/inconshreveable/log15"
@@ -32,7 +33,8 @@ func collectMonitorData(db *DB.MonitorDB) {
 			jrpc := getJrpc(item.HostIp, item.ServerPort)
 			lastHeader, err := rpc.QueryLastHeader(jrpc)
 			if err != nil {
-				//TODO  发生错误时，需要更新服务状态
+				//TODO  发生错误时，需要更新服务状态,这里需要定义一个通用函数更新即可
+				updateAbnormalServerStatus(db, item)
 				continue
 			}
 			isSync, err := rpc.QueryIsSync(jrpc)
@@ -41,6 +43,7 @@ func collectMonitorData(db *DB.MonitorDB) {
 				HostID:          item.HostID,
 				GroupID:         item.GroupID,
 				ServerPort:      item.ServerPort,
+				ServerStatus:    0,
 				LastBlockHeight: lastHeader.Height,
 				LastBlockHash:   lastHeader.Hash,
 				IsSync: func(flag bool) int64 {
@@ -65,6 +68,24 @@ func collectMonitorData(db *DB.MonitorDB) {
 			return
 		}
 		page.PageNum++
+	}
+}
+
+func updateAbnormalServerStatus(db *DB.MonitorDB, hostInfo *model.HostInfo) {
+	monitor := &model.Monitor{
+		HostIp:       hostInfo.HostIp,
+		HostID:       hostInfo.HostID,
+		GroupID:      hostInfo.GroupID,
+		ServerPort:   hostInfo.ServerPort,
+		ServerStatus: 1,
+		IsSync:       1,
+	}
+	values := db.QueryMonitorById(hostInfo.GroupID, hostInfo.HostID)
+	if len(values) == 0 {
+		db.InsertData(monitor)
+
+	} else {
+		db.UpdateData(monitor)
 	}
 }
 
@@ -128,6 +149,7 @@ func collectBalanceData(db *DB.MonitorDB) {
 	}
 }
 
+//采集机器信息
 func collectResourceData(db *DB.MonitorDB) {
 	page := &model.Page{
 		PageSize: 10,
@@ -142,6 +164,18 @@ func collectResourceData(db *DB.MonitorDB) {
 		for _, item := range items {
 			if item.UserName == "" || item.PassWd == "" || item.SSHPort == 0 {
 				continue
+			}
+			sftClient, err := sftp.NewSftpClient(item)
+			if err != nil {
+				log15.Error("collectResourceData", "NewSftpClient err", err.Error())
+				continue
+			}
+			if !sftClient.Exists(exec.GetRemoteScriptsPath()) {
+				err = sftClient.UploadFile(exec.GetScriptsPath(), exec.GetRemoteScriptsPath())
+				if err != nil {
+					log15.Error("collectResourceData", "UploadFile err", err.Error())
+					continue
+				}
 			}
 			resource, err := exec.Exec_CollectResource(item)
 			if err != nil {
@@ -222,6 +256,11 @@ func collectResourceData(db *DB.MonitorDB) {
 		}
 		page.PageNum++
 	}
+}
+
+//区块hash一致性检查
+func checkBlockHash(db *DB.MonitorDB) {
+	//TODO 待实现
 }
 
 func clearResourceData(db *DB.MonitorDB) {

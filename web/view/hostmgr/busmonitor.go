@@ -66,8 +66,8 @@ func GetPaymentAddressBalance(ctx iris.Context) {
 		return
 	}
 	//TODO:
-	count := types.GetDB().QueryBusWarningCount(id)
-	ctx.JSON(count)
+	items := types.GetDB().QueryLastBalance(id)
+	ctx.JSON(items)
 }
 
 func GetBalanceListByTime(ctx iris.Context) {

@@ -84,17 +84,23 @@ func RemoteExec(cmdInfo *CmdInfo) error {
 	return err
 }
 
-func Init(host *model.HostInfo) error {
+//上传信息采集脚本
+func UploadScriptsFile(host *model.HostInfo) error {
+	return Exec_Scp(GetScriptsPath(), REMOTEPATH, host)
+}
+
+//TODO 这个方法有bug,goexpect bug 待修复,暂时用sftp替代
+func Exec_Scp(localFilePath, remotePath string, host *model.HostInfo) error {
 	cmdInfo := &CmdInfo{
 		UserName: host.UserName,
 		PassWord: host.PassWd,
 		HostIp:   host.HostIp,
 		Port:     int(host.SSHPort),
-		Cmd:      fmt.Sprintf("mkdir -p %v", REMOTEPATH),
+		Cmd:      fmt.Sprintf("mkdir -p %v", remotePath),
 	}
 	RemoteExec(cmdInfo)
 
-	cmd := fmt.Sprintf("scp -P %v %s  %s@%s:%s", host.SSHPort, getScriptsPath(), host.UserName, host.HostIp, REMOTEPATH)
+	cmd := fmt.Sprintf("scp -P %v %s  %s@%s:%s", host.SSHPort, localFilePath, host.UserName, host.HostIp, remotePath)
 	pwd := host.PassWd
 
 	child, err := gexpect.Spawn(cmd)
@@ -119,9 +125,8 @@ func Init(host *model.HostInfo) error {
 	}
 
 	log.Info("Success")
-	return err
+	return nil
 }
-
 func Exec_CollectResource(host *model.HostInfo) (*model.ResourceInfo, error) {
 	session, err := sshconnect(host.UserName, host.PassWd, host.HostIp, int(host.SSHPort))
 	if err != nil {
@@ -186,6 +191,9 @@ func genCollectScript() []string {
 	}
 	return commands
 }
-func getScriptsPath() string {
+func GetScriptsPath() string {
 	return fmt.Sprintf("%s/gopsutil", conf.CurrDir)
+}
+func GetRemoteScriptsPath() string {
+	return fmt.Sprintf("%s/gopsutil", REMOTEPATH)
 }

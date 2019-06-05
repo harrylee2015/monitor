@@ -10,21 +10,22 @@ type GroupInfo struct {
 
 //paymentAddress
 type PaymentAddress struct {
-	ID      int64  `json:"id"`
-	GroupID int64  `json:"groupId"`
-	Address string `json:"address"`
+	ID        int64  `json:"id"`
+	GroupID   int64  `json:"groupId"`
+	GroupName string `json:"groupName"`
+	Address   string `json:"address"`
 }
 
 //hostInfo
 type HostInfo struct {
-	HostID          int64  `json:"hostId"`
-	HostName        string `json:"hostName"`
-	GroupID         int64  `json:"groupId"`
-	GroupName       string `json:"groupName"`
-	HostIp          string `json:"hostIp"`
-	SSHPort         int64  `json:"SSHPort"`
-	UserName        string `json:"userName"`
-	PassWd          string `json:"passWd"`
+	HostID    int64  `json:"hostId"`
+	HostName  string `json:"hostName"`
+	GroupID   int64  `json:"groupId"`
+	GroupName string `json:"groupName"`
+	HostIp    string `json:"hostIp"`
+	SSHPort   int64  `json:"SSHPort"`
+	UserName  string `json:"userName"`
+	PassWd    string `json:"passWd"`
 	// 0表示不检查节点资源状况 1表示检查
 	IsCheckResource int64  `json:"isCheckResource"`
 	ProcessName     string `json:"processName"`
@@ -63,7 +64,10 @@ type Monitor struct {
 	GroupID         int64  `json:"groupId"`
 	HostIp          string `json:"hostIp"`
 	ServerPort      int64  `json:"serverPort"`
+	//0表示服务正常，1表示服务异常
+	ServerStatus    int64  `json:"serverStatus"`
 	LastBlockHeight int64  `json:"lastBlockHeight"`
+	//0表示同步，1表示未同步
 	IsSync          int64  `json:"isSync"`
 	LastBlockHash   string `json:"lastBlockHash"`
 	UpdateTime      int64  `json:"updateTime"`
@@ -96,21 +100,3 @@ type Page struct {
 	PageNum  int64 `json:"pageNum"`
 	PageSize int64 `json:"pageSize"`
 }
-
-// 创建到此SSH主机的连接
-//func (node *HostInfo) Connect() (*ssh.Client, error) {
-//	// 使用密码认证
-//	config := &ssh.ClientConfig{
-//		User: node.UserName,
-//		Auth: []ssh.AuthMethod{
-//			ssh.Password(node.PassWd),
-//		},
-//		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-//	}
-//	client, err := ssh.Dial("tcp", fmt.Sprintf("%v:%v", node.HostIp, node.SSHPort), config)
-//	if err != nil {
-//		log.Error("connecting error", err)
-//		return nil, err
-//	}
-//	return client, nil
-//}

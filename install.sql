@@ -30,6 +30,7 @@ CREATE TABLE 'PaymentAddress'
 (
   'id' INTEGER PRIMARY KEY AUTOINCREMENT,
   'groupId' INTEGER NOT NULL,
+  'groupName' TEXT NOT NULL,
 	'address' TEXT NOT NULL
 )
 ;
@@ -74,6 +75,7 @@ CREATE TABLE 'Monitor'
   'hostId' INTEGER NOT NULL,
   'hostIp' TEXT NOT NULL,
   'serverPort' INTEGER NOT NULL,
+  'serverStatus' NUMERIC NOT NULL,
   'lastBlockHeight' INTEGER NOT NULL,
   'isSync' NUMERIC NOT NULL ,
   'lastBlockHash' TEXT NOT NULL,
