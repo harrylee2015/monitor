@@ -14,6 +14,8 @@ var (
 
 	ClearDataCycle = int64(3600)
 
+	CheckBlockHashCycle = int64(300)
+
 	MemUsedPercentWarning = float64(80)
 
 	CpuUsedPercentWarning = float64(80)
@@ -47,6 +49,8 @@ type Monitor struct {
 	CollectResourceCycle int64
 
 	CollectBalanceCycle int64
+
+	CheckBlockHashCycle int64
 
 	ResourceDataHoldTime int64
 
@@ -91,6 +95,8 @@ func SetConf(conf *Config) {
 	CollectResourceCycle = conf.Monitor.CollectResourceCycle
 
 	CollectBalanceCycle = conf.Monitor.CollectBalanceCycle
+
+	CheckBlockHashCycle = conf.Monitor.CheckBlockHashCycle
 
 	ResourceDataHoldTime = conf.Monitor.ResourceDataHoldTime
 

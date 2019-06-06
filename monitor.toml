@@ -9,16 +9,18 @@ datasource="root:fuzamei@tcp(127.0.0.1)/adeploy?parseTime=true"
 [monitor]
 # 主链RPC
 mainChain = "http://192.168.0.194:8801"
-#监控采集周期
+#监控采集周期(单位秒）
 collectMonitorCycle = 15
 #资源采集周期
 collectResourceCycle = 15
 #余额采集周期
 collectBalanceCycle = 15
+#hash一致性检查
+checkBlockHashCycle = 60
 #资源数据保留时间
-resourceDataHoldTime = 2592000
+resourceDataHoldTime = 7200
 #余额数据保留时间
-balanceDataHoldTime = 2592000
+balanceDataHoldTime = 7200
 #多长时间轮讯清理数据
 clearDataCycle = 3600
 #资源告警伐值
@@ -26,7 +28,7 @@ memUsedPercentWarning = 80.0
 cpuUsedPercentWarning = 80.0
 diskUsedPercentWarning = 80.0
 #余额不足20时告警
-balanceWarning = 20.0
+balanceWarning = 300.0
 
 [log]
 # 日志级别，支持debug(dbug)/info/warn/error(eror)/crit

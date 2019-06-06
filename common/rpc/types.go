@@ -1,4 +1,5 @@
 package rpc
+
 import (
 	"encoding/json"
 )

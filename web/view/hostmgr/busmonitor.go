@@ -1,6 +1,7 @@
 package hostmgr
 
 import (
+	"github.com/harrylee2015/monitor/common/db"
 	"github.com/harrylee2015/monitor/model"
 	"github.com/harrylee2015/monitor/types"
 	. "github.com/harrylee2015/monitor/web/view/webutil"
@@ -88,4 +89,25 @@ func GetHistoryWarning(ctx iris.Context) {
 	}
 	items := types.GetDB().QueryHistoryWarning(&page)
 	ctx.JSON(items)
+}
+
+func GetBlockHash(ctx iris.Context) {
+	id, err := ctx.Params().GetInt64("groupId")
+	if err != nil {
+		ClientErr(ctx, err)
+		return
+	}
+	items := types.GetDB().QueryWarningByGroupIdAndType(id,db.HASH_WARING)
+	if len(items)==0{
+		hash :=&model.Hash{
+			IsConsistent:true,
+		}
+		ctx.JSON(hash)
+		return
+	}
+	hash :=&model.Hash{
+		IsConsistent:false,
+		Values:items,
+	}
+	ctx.JSON(hash)
 }

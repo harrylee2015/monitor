@@ -1,13 +1,12 @@
-
 package rpc
 
 import (
-"bytes"
-"encoding/json"
-"fmt"
-log "github.com/inconshreveable/log15"
-"io/ioutil"
-"net/http"
+	"bytes"
+	"encoding/json"
+	"fmt"
+	log "github.com/inconshreveable/log15"
+	"io/ioutil"
+	"net/http"
 )
 
 var (

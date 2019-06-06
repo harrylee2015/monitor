@@ -11,8 +11,8 @@ import (
 	//"github.com/shirou/gopsutil/host"
 	"github.com/shirou/gopsutil/mem"
 	//"github.com/shirou/gopsutil/net"
-
 )
+
 type ResourceInfo struct {
 	ID      int64
 	HostID  int64
@@ -28,6 +28,7 @@ type ResourceInfo struct {
 	DiskUsedPercent float64
 	CreateTime      int64
 }
+
 func main() {
 	v, _ := mem.VirtualMemory()
 	c, _ := cpu.Info()
@@ -58,6 +59,6 @@ func main() {
 		DiskUsedPercent: d.UsedPercent,
 		CreateTime:      time.Now().Unix(),
 	}
-	data,_:=json.Marshal(resourceInfo)
+	data, _ := json.Marshal(resourceInfo)
 	fmt.Printf("data=============:%v  \n", string(data))
 }

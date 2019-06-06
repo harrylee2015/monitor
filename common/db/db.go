@@ -51,6 +51,8 @@ var (
 	QueryResWarningCount         = "SELECT COUNT(*) FROM Warning WHERE isClosed=0  AND groupId=? AND type IN ( 1, 2, 3 )"
 	QueryBusWarningByGroupId     = "SELECT * FROM Warning WHERE isClosed=0 AND groupId=? AND type IN ( 4, 5 ) ORDER BY createTime ASC"
 	QueryResWarningByHostId      = "SELECT * FROM Warning WHERE isClosed=0 AND hostId=? AND type IN ( 1, 2, 3 ) ORDER BY createTime ASC"
+	QueryWarningByGroupIdAndType = "SELECT * FROM Warning WHERE isClosed=0  AND groupId=? AND type=?"
+	QueryWarningByHostIdAndType  = "SELECT * FROM Warning WHERE isClosed=0  AND hostId=? AND type=?"
 	QueryHistoryWarning          = "SELECT * FROM Warning WHERE isClosed=1 ORDER BY createTime DESC LIMIT ? OFFSET ? "
 
 	UpdateGroupInfoSql      = "UPDATE GroupInfo SET groupName=?,describe=?,title=? WHERE groupId=?"
@@ -417,6 +419,50 @@ func (mdb *MonitorDB) QueryWarningByHostId(hostId int64) (items []*model.Warning
 	defer stmt.Close()
 
 	rows, err := stmt.Query(hostId)
+	checkErr(err)
+	defer stmt.Close()
+	defer rows.Close()
+	for rows.Next() {
+		value := model.Warning{}
+		//TODO:这里应该是字段一一对应关系
+		err := rows.Scan(&value.ID, &value.HostID, &value.GroupID, &value.Type, &value.Warning, &value.BlockHeight, &value.CreateTime, &value.IsClosed, &value.UpdateTime)
+		checkErr(err)
+		items = append(items, &value)
+	}
+	return items
+}
+
+//QueryWarningByGroupIdAndType
+func (mdb *MonitorDB) QueryWarningByGroupIdAndType(groupId, ty int64) (items []*model.Warning) {
+	mdb.Lock()
+	defer mdb.Unlock()
+	stmt, err := mdb.db.Prepare(QueryWarningByGroupIdAndType)
+	checkErr(err)
+	defer stmt.Close()
+
+	rows, err := stmt.Query(groupId, ty)
+	checkErr(err)
+	defer stmt.Close()
+	defer rows.Close()
+	for rows.Next() {
+		value := model.Warning{}
+		//TODO:这里应该是字段一一对应关系
+		err := rows.Scan(&value.ID, &value.HostID, &value.GroupID, &value.Type, &value.Warning, &value.BlockHeight, &value.CreateTime, &value.IsClosed, &value.UpdateTime)
+		checkErr(err)
+		items = append(items, &value)
+	}
+	return items
+}
+
+//QueryWarningByHostIdAndType
+func (mdb *MonitorDB) QueryWarningByHostIdAndType(hostId, ty int64) (items []*model.Warning) {
+	mdb.Lock()
+	defer mdb.Unlock()
+	stmt, err := mdb.db.Prepare(QueryWarningByHostIdAndType)
+	checkErr(err)
+	defer stmt.Close()
+
+	rows, err := stmt.Query(hostId, ty)
 	checkErr(err)
 	defer stmt.Close()
 	defer rows.Close()

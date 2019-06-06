@@ -16,7 +16,7 @@ func TestQueryLastHeader(t *testing.T) {
 		t.Fail()
 	}
 	t.Log(head)
-	t.Logf("lashBlockHash:%v",head.Hash)
+	t.Logf("lashBlockHash:%v", head.Hash)
 }
 
 func TestQueryBalance(t *testing.T) {
@@ -26,11 +26,11 @@ func TestQueryBalance(t *testing.T) {
 		t.Fail()
 	}
 	t.Log(accounts)
-	t.Logf("balance:%v",accounts[0].Balance)
+	t.Logf("balance:%v", accounts[0].Balance)
 }
 
 func TestQueryIsSync(t *testing.T) {
-    isSync,err:=QueryIsSync(getJrpc("192.168.0.194", 9901))
+	isSync, err := QueryIsSync(getJrpc("192.168.0.194", 9901))
 	if err != nil {
 		t.Error(err)
 		t.Fail()
@@ -39,10 +39,10 @@ func TestQueryIsSync(t *testing.T) {
 }
 
 func TestQueryBlockHash(t *testing.T) {
-    reply,err:= QueryBlockHash(getJrpc("192.168.0.194", 9901),100)
+	reply, err := QueryBlockHash(getJrpc("192.168.0.194", 9901), 100)
 	if err != nil {
 		t.Error(err)
 		t.Fail()
 	}
-	t.Logf("height %d block, blockhash:%s",100,reply.Hash)
+	t.Logf("height %d block, blockhash:%s", 100, reply.Hash)
 }

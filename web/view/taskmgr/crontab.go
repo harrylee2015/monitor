@@ -11,7 +11,7 @@ import (
 func CronTask() {
 	db := types.GetDB()
 	var group sync.WaitGroup
-	group.Add(5)
+	group.Add(6)
 	go collectMonitor(db, &group)
 
 	go collectBalance(db, &group)
@@ -21,6 +21,8 @@ func CronTask() {
 	go clearBalanceTable(db, &group)
 
 	go clearResourceTable(db, &group)
+
+	go checkGroupBlockHash(db, &group)
 
 	group.Wait()
 
@@ -63,6 +65,15 @@ func clearBalanceTable(db *db.MonitorDB, group *sync.WaitGroup) {
 	for {
 		<-tick
 		clearBalanceData(db)
+	}
+	defer group.Done()
+}
+
+func checkGroupBlockHash(db *db.MonitorDB, group *sync.WaitGroup) {
+	tick := time.Tick(time.Duration(conf.CheckBlockHashCycle) * time.Second)
+	for {
+		<-tick
+		checkBlockHash(db)
 	}
 	defer group.Done()
 }

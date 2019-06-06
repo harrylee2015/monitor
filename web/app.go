@@ -104,6 +104,8 @@ func (s *WebServer) routeMonitormgr() {
 	s.route("GET", "/monitormgr/balancelist/{groupId:int}", hostmgr.GetBalanceListByTime)
 	//根据时间段查看节点资源信息
 	s.route("GET", "/monitormgr/resourcelist/{hostId:int}", hostmgr.ListResource)
+	//根据groupId查看区块hash是否一致
+	s.route("GET", "/monitormgr/blockhash/{groupId:int}", hostmgr.GetBlockHash)
 }
 
 // 添加路由信息

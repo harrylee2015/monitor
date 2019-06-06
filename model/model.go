@@ -59,18 +59,18 @@ type ResourceInfo struct {
 
 //ServerMonitor
 type Monitor struct {
-	ID              int64  `json:"id"`
-	HostID          int64  `json:"hostId"`
-	GroupID         int64  `json:"groupId"`
-	HostIp          string `json:"hostIp"`
-	ServerPort      int64  `json:"serverPort"`
+	ID         int64  `json:"id"`
+	HostID     int64  `json:"hostId"`
+	GroupID    int64  `json:"groupId"`
+	HostIp     string `json:"hostIp"`
+	ServerPort int64  `json:"serverPort"`
 	//0表示服务正常，1表示服务异常
-	ServerStatus    int64  `json:"serverStatus"`
-	LastBlockHeight int64  `json:"lastBlockHeight"`
+	ServerStatus    int64 `json:"serverStatus"`
+	LastBlockHeight int64 `json:"lastBlockHeight"`
 	//0表示同步，1表示未同步
-	IsSync          int64  `json:"isSync"`
-	LastBlockHash   string `json:"lastBlockHash"`
-	UpdateTime      int64  `json:"updateTime"`
+	IsSync        int64  `json:"isSync"`
+	LastBlockHash string `json:"lastBlockHash"`
+	UpdateTime    int64  `json:"updateTime"`
 }
 
 //balance
@@ -95,6 +95,13 @@ type Warning struct {
 	//是否处理过了 0表示没有处理，1表示处理过了
 	IsClosed   int64 `json:"isClosed"`
 	UpdateTime int64 `json:"updateTime"`
+}
+
+//HASH 一致性告警
+type Hash struct {
+	//是否一致，如果是false的话，会把hash不一致得告警信息附上
+	IsConsistent bool        `json:"isConsistent"`
+	Values       interface{} `json:"values"`
 }
 type Page struct {
 	PageNum  int64 `json:"pageNum"`

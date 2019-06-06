@@ -17,8 +17,8 @@ func ListHosts(ctx iris.Context) {
 	items := types.GetDB().QueryHostInfoByPageNum(&page)
 	count := types.GetDB().QueryCount(db.Type_Host)
 	list := &model.List{
-		Total:count,
-		Values:items,
+		Total:  count,
+		Values: items,
 	}
 	ctx.JSON(list)
 }

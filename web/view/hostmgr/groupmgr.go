@@ -18,8 +18,8 @@ func ListHostGroups(ctx iris.Context) {
 	items := types.GetDB().QueryGroupInfoByPageNum(&page)
 	count := types.GetDB().QueryCount(db.Type_Group)
 	list := &model.List{
-		Total:count,
-        Values:items,
+		Total:  count,
+		Values: items,
 	}
 	ctx.JSON(list)
 }
@@ -30,7 +30,7 @@ func AddHostGroup(ctx iris.Context) {
 		ClientErr(ctx, err)
 		return
 	}
-	fmt.Println("group===========:",group)
+	fmt.Println("group===========:", group)
 	types.GetDB().InsertData(&group)
 	ServOK(ctx)
 }
