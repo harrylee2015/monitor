@@ -108,11 +108,10 @@ func Exec_Scp(localFilePath, remotePath string, host *model.HostInfo) error {
 		log.Error("spawn", err)
 		return err
 	}
-
-	if err := child.ExpectTimeout("password: ", 10*time.Second); err != nil {
-		log.Error("Expect timieout error ", err)
-		return err
-	}
+	//如果是第一次使用scp的话，会出现（yes/no)选项
+	//if err := child.ExpectTimeout("(yes/no)", 100*time.Microsecond); err != nil {
+	//	log.Warn("Expect timieout error ", err)
+	//}
 
 	if err := child.SendLine(pwd); err != nil {
 		log.Error("SendLine password error ", err)
