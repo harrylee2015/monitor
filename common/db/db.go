@@ -53,6 +53,7 @@ var (
 	QueryResWarningByHostId      = "SELECT * FROM Warning WHERE isClosed=0 AND hostId=? AND type IN ( 1, 2, 3 ) ORDER BY createTime ASC"
 	QueryWarningByGroupIdAndType = "SELECT * FROM Warning WHERE isClosed=0  AND groupId=? AND type=?"
 	QueryWarningByHostIdAndType  = "SELECT * FROM Warning WHERE isClosed=0  AND hostId=? AND type=?"
+	QueryHistoryWarningCount     = "SELECT COUNT(*) FROM Warning WHERE isClosed=1"
 	QueryHistoryWarning          = "SELECT * FROM Warning WHERE isClosed=1 ORDER BY createTime DESC LIMIT ? OFFSET ? "
 
 	UpdateGroupInfoSql      = "UPDATE GroupInfo SET groupName=?,describe=?,title=? WHERE groupId=?"
@@ -184,7 +185,6 @@ func (mdb *MonitorDB) QueryGroupInfoByPageNum(page *model.Page) (items []*model.
 
 	rows, err := stmt.Query(page.PageSize, (page.PageNum-1)*page.PageSize)
 	checkErr(err)
-	defer stmt.Close()
 	defer rows.Close()
 	for rows.Next() {
 		value := model.GroupInfo{}
@@ -205,7 +205,6 @@ func (mdb *MonitorDB) QueryHostInfoByPageNum(page *model.Page) (items []*model.H
 
 	rows, err := stmt.Query(page.PageSize, (page.PageNum-1)*page.PageSize)
 	checkErr(err)
-	defer stmt.Close()
 	defer rows.Close()
 	for rows.Next() {
 		value := model.HostInfo{}
@@ -226,7 +225,6 @@ func (mdb *MonitorDB) QueryHostInfoByGroupId(groupId int64) (items []*model.Host
 
 	rows, err := stmt.Query(groupId)
 	checkErr(err)
-	defer stmt.Close()
 	defer rows.Close()
 	for rows.Next() {
 		value := model.HostInfo{}
@@ -247,7 +245,6 @@ func (mdb *MonitorDB) QueryPaymentAddress(groupId int64) (items []*model.Payment
 
 	rows, err := stmt.Query(groupId)
 	checkErr(err)
-	defer stmt.Close()
 	defer rows.Close()
 	for rows.Next() {
 		value := model.PaymentAddress{}
@@ -268,7 +265,6 @@ func (mdb *MonitorDB) QueryPaymentAddressByPageNum(page *model.Page) (items []*m
 
 	rows, err := stmt.Query(page.PageSize, (page.PageNum-1)*page.PageSize)
 	checkErr(err)
-	defer stmt.Close()
 	defer rows.Close()
 	for rows.Next() {
 		value := model.PaymentAddress{}
@@ -289,7 +285,6 @@ func (mdb *MonitorDB) QueryResourceInfo(hostId, limit int64) (items []*model.Res
 
 	rows, err := stmt.Query(hostId, limit)
 	checkErr(err)
-	defer stmt.Close()
 	defer rows.Close()
 	for rows.Next() {
 		value := model.ResourceInfo{}
@@ -311,7 +306,6 @@ func (mdb *MonitorDB) QueryMonitor(groupId int64) (items []*model.Monitor) {
 
 	rows, err := stmt.Query(groupId)
 	checkErr(err)
-	defer stmt.Close()
 	defer rows.Close()
 	for rows.Next() {
 		value := model.Monitor{}
@@ -332,7 +326,6 @@ func (mdb *MonitorDB) QueryMonitorById(groupId, hostId int64) (items []*model.Mo
 
 	rows, err := stmt.Query(groupId, hostId)
 	checkErr(err)
-	defer stmt.Close()
 	defer rows.Close()
 	for rows.Next() {
 		value := model.Monitor{}
@@ -354,7 +347,6 @@ func (mdb *MonitorDB) QueryLastBalance(groupId int64) (items []*model.Balance) {
 
 	rows, err := stmt.Query(groupId)
 	checkErr(err)
-	defer stmt.Close()
 	defer rows.Close()
 	for rows.Next() {
 		value := model.Balance{}
@@ -376,7 +368,6 @@ func (mdb *MonitorDB) QueryBalance(groupId int64) (items []*model.Balance) {
 
 	rows, err := stmt.Query(groupId)
 	checkErr(err)
-	defer stmt.Close()
 	defer rows.Close()
 	for rows.Next() {
 		value := model.Balance{}
@@ -398,7 +389,6 @@ func (mdb *MonitorDB) QueryWarningByGroupId(groupId int64) (items []*model.Warni
 
 	rows, err := stmt.Query(groupId)
 	checkErr(err)
-	defer stmt.Close()
 	defer rows.Close()
 	for rows.Next() {
 		value := model.Warning{}
@@ -420,7 +410,6 @@ func (mdb *MonitorDB) QueryWarningByHostId(hostId int64) (items []*model.Warning
 
 	rows, err := stmt.Query(hostId)
 	checkErr(err)
-	defer stmt.Close()
 	defer rows.Close()
 	for rows.Next() {
 		value := model.Warning{}
@@ -442,7 +431,6 @@ func (mdb *MonitorDB) QueryWarningByGroupIdAndType(groupId, ty int64) (items []*
 
 	rows, err := stmt.Query(groupId, ty)
 	checkErr(err)
-	defer stmt.Close()
 	defer rows.Close()
 	for rows.Next() {
 		value := model.Warning{}
@@ -464,7 +452,6 @@ func (mdb *MonitorDB) QueryWarningByHostIdAndType(hostId, ty int64) (items []*mo
 
 	rows, err := stmt.Query(hostId, ty)
 	checkErr(err)
-	defer stmt.Close()
 	defer rows.Close()
 	for rows.Next() {
 		value := model.Warning{}
@@ -486,7 +473,6 @@ func (mdb *MonitorDB) QueryHistoryWarning(page *model.Page) (items []*model.Warn
 
 	rows, err := stmt.Query(page.PageSize, (page.PageNum-1)*page.PageSize)
 	checkErr(err)
-	defer stmt.Close()
 	defer rows.Close()
 	for rows.Next() {
 		value := model.Warning{}
@@ -498,6 +484,23 @@ func (mdb *MonitorDB) QueryHistoryWarning(page *model.Page) (items []*model.Warn
 	return items
 }
 
+func (mdb *MonitorDB) QueryHistoryWarningCount() (count int64) {
+	mdb.Lock()
+	defer mdb.Unlock()
+	stmt, err := mdb.db.Prepare(QueryHistoryWarningCount)
+	checkErr(err)
+	defer stmt.Close()
+
+	rows, err := stmt.Query()
+	checkErr(err)
+	defer rows.Close()
+	for rows.Next() {
+		err := rows.Scan(&count)
+		checkErr(err)
+	}
+	return count
+}
+
 func (mdb *MonitorDB) QueryBusWarningCount(groupId int64) (count int64) {
 	mdb.Lock()
 	defer mdb.Unlock()
@@ -507,7 +510,6 @@ func (mdb *MonitorDB) QueryBusWarningCount(groupId int64) (count int64) {
 
 	rows, err := stmt.Query(groupId)
 	checkErr(err)
-	defer stmt.Close()
 	defer rows.Close()
 	for rows.Next() {
 		err := rows.Scan(&count)
@@ -525,7 +527,6 @@ func (mdb *MonitorDB) QueryResWarningCount(groupId int64) (count int64) {
 
 	rows, err := stmt.Query(groupId)
 	checkErr(err)
-	defer stmt.Close()
 	defer rows.Close()
 	for rows.Next() {
 		err := rows.Scan(&count)

@@ -85,7 +85,10 @@ func updateAbnormalServerStatus(db *DB.MonitorDB, hostInfo *model.HostInfo) {
 		db.InsertData(monitor)
 
 	} else {
-		db.UpdateData(monitor)
+		if values[0].ServerStatus != 1 && values[0].IsSync != 1 {
+			db.UpdateData(monitor)
+		}
+
 	}
 }
 

@@ -44,7 +44,7 @@ func DeletewarningById(ctx iris.Context) {
 		ClientErr(ctx, err)
 		return
 	}
-	types.GetDB().UpdateData(warning)
+	types.GetDB().UpdateData(&warning)
 	ServOK(ctx)
 }
 
@@ -88,7 +88,12 @@ func GetHistoryWarning(ctx iris.Context) {
 		return
 	}
 	items := types.GetDB().QueryHistoryWarning(&page)
-	ctx.JSON(items)
+	count := types.GetDB().QueryHistoryWarningCount()
+	list := &model.List{
+		Total:  count,
+		Values: items,
+	}
+	ctx.JSON(list)
 }
 
 func GetBlockHash(ctx iris.Context) {
