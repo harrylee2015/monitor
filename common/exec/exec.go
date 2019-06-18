@@ -140,6 +140,7 @@ func Exec_CollectResource(host *model.HostInfo) (*model.ResourceInfo, error) {
 		log.Error("Exec_CollectResource", "StdinPipe err:", err.Error())
 		return nil, err
 	}
+	defer pipe.Close()
 	//定义一个buffer 字节数组用于接收ssh会话输出内容
 	bout := bytes.NewBuffer(nil)
 	berr := bytes.NewBuffer(nil)

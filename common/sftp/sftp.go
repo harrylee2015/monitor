@@ -80,6 +80,7 @@ func (ftp *SftpClient) DownloadFile(localFile string, remoteFile string) error {
 		log.Error("open remote file error", "error", err, "file", remoteFile)
 		return err
 	}
+	defer fs.Close()
 	info, _ := fs.Stat()
 	local, _ := os.OpenFile(localFile, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 	_, err = io.Copy(local, io.LimitReader(fs, info.Size()))

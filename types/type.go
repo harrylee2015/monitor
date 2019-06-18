@@ -23,6 +23,7 @@ func RegisterDB() {
 	if db, ok := register[DBNAME]; !ok {
 		db = DB.NewMonitorDB()
 		register[DBNAME] = db
+		fmt.Println("=======InitDB============")
 		return
 	}
 	panic(fmt.Errorf("can't duplicate registration db!"))

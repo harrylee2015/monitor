@@ -23,6 +23,15 @@ func ListHosts(ctx iris.Context) {
 	ctx.JSON(list)
 }
 
+func QueryHostsByGroupId(ctx iris.Context){
+	id, err := ctx.Params().GetInt64("groupId")
+	if err != nil {
+		ClientErr(ctx, err)
+		return
+	}
+    items :=types.GetDB().QueryHostInfoByGroupId(id)
+	ctx.JSON(items)
+}
 func AddHost(ctx iris.Context) {
 	var host model.HostInfo
 	if err := ctx.ReadJSON(&host); err != nil {

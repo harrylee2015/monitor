@@ -32,7 +32,7 @@ var (
 	InsertResourceInfoSql   = "INSERT INTO ResourceInfo (groupId, hostId, memTotal,memUsedPercent,cpuTotal,cpuUsedPercent,diskTotal,diskUsedPercent,createTime) VALUES (?,?,?,?,?,?,?,?,?)"
 	InsertMonitorSql        = "INSERT INTO Monitor (groupId, hostId, hostIp,serverPort,serverStatus,lastBlockHeight,isSync,lastBlockHash,updateTime) VALUES (?,?,?,?,?,?,?,?,?)"
 	InsertBalanceSql        = "INSERT INTO Balance (groupId, address, balance,createTime) VALUES (?,?,?,?)"
-	InsertWarningSql        = "INSERT INTO Warning (groupId, hostId, type,warning,blockHeight,createTime,isClosed,updateTime) VALUES (?,?,?,?,?,?,?,?)"
+	InsertWarningSql        = "INSERT INTO Warning (hostId,groupId,type,warning,blockHeight,createTime,isClosed,updateTime) VALUES (?,?,?,?,?,?,?,?)"
 
 	QueryGroupInfoCount          = "SELECT COUNT(*) FROM GroupInfo"
 	QueryHostInfoCount           = "SELECT COUNT(*) FROM HostInfo"
@@ -54,7 +54,7 @@ var (
 	QueryWarningByGroupIdAndType = "SELECT * FROM Warning WHERE isClosed=0  AND groupId=? AND type=?"
 	QueryWarningByHostIdAndType  = "SELECT * FROM Warning WHERE isClosed=0  AND hostId=? AND type=?"
 	QueryHistoryWarningCount     = "SELECT COUNT(*) FROM Warning WHERE isClosed=1"
-	QueryHistoryWarning          = "SELECT * FROM Warning WHERE isClosed=1 ORDER BY createTime DESC LIMIT ? OFFSET ? "
+	QueryHistoryWarning          = "SELECT warning.id,Warning.hostId,HostInfo.hostIp,HostInfo.hostName,Warning.groupId,GroupInfo.groupName,Warning.type,Warning.warning,Warning.blockHeight,Warning.createTime,Warning.isClosed,Warning.updateTime FROM Warning LEFT OUTER JOIN HostInfo ON Warning.hostId = HostInfo.hostId LEFT OUTER JOIN GroupInfo ON Warning.groupId = GroupInfo.groupId WHERE Warning.isClosed=1 ORDER BY Warning.createTime DESC LIMIT ? OFFSET ?"
 
 	UpdateGroupInfoSql      = "UPDATE GroupInfo SET groupName=?,describe=?,title=? WHERE groupId=?"
 	UpdatePaymentAddressSql = "UPDATE PaymentAddress SET groupId=?,groupName=?,address=? WHERE id=?"
@@ -96,6 +96,7 @@ func (mdb *MonitorDB) Close() {
 }
 func checkErr(err error) {
 	if err != nil {
+		fmt.Println("err:", err.Error())
 		panic(err)
 	}
 }
@@ -129,7 +130,7 @@ func (mdb *MonitorDB) InsertData(data interface{}) {
 		return
 	}
 	if g, ok := data.(*model.Warning); ok {
-		mdb.insertData(InsertWarningSql, g.GroupID, g.HostID, g.Type, g.Warning, g.BlockHeight, time.Now().Unix(), g.IsClosed, time.Now().Unix())
+		mdb.insertData(InsertWarningSql, g.HostID, g.GroupID, g.Type, g.Warning, g.BlockHeight, time.Now().Unix(), g.IsClosed, time.Now().Unix())
 		return
 	}
 	if g, ok := data.(*model.GroupInfo); ok {
@@ -229,7 +230,7 @@ func (mdb *MonitorDB) QueryHostInfoByGroupId(groupId int64) (items []*model.Host
 	for rows.Next() {
 		value := model.HostInfo{}
 		//TODO:这里应该是字段一一对应关系
-		err := rows.Scan(&value.HostID, &value.GroupID, &value.HostIp, &value.SSHPort, &value.UserName, &value.PassWd, &value.IsCheckResource, &value.ProcessName, &value.ServerPort, &value.CreateTime, &value.UpdateTime)
+		err := rows.Scan(&value.HostID, &value.HostName, &value.GroupID, &value.GroupName, &value.HostIp, &value.SSHPort, &value.UserName, &value.PassWd, &value.IsCheckResource, &value.ProcessName, &value.ServerPort, &value.CreateTime, &value.UpdateTime)
 		checkErr(err)
 		items = append(items, &value)
 	}
@@ -464,7 +465,7 @@ func (mdb *MonitorDB) QueryWarningByHostIdAndType(hostId, ty int64) (items []*mo
 }
 
 //QueryHistoryWarning
-func (mdb *MonitorDB) QueryHistoryWarning(page *model.Page) (items []*model.Warning) {
+func (mdb *MonitorDB) QueryHistoryWarning(page *model.Page) (items []*model.WarningDetail) {
 	mdb.Lock()
 	defer mdb.Unlock()
 	stmt, err := mdb.db.Prepare(QueryHistoryWarning)
@@ -475,9 +476,9 @@ func (mdb *MonitorDB) QueryHistoryWarning(page *model.Page) (items []*model.Warn
 	checkErr(err)
 	defer rows.Close()
 	for rows.Next() {
-		value := model.Warning{}
+		value := model.WarningDetail{}
 		//TODO:这里应该是字段一一对应关系
-		err := rows.Scan(&value.ID, &value.HostID, &value.GroupID, &value.Type, &value.Warning, &value.BlockHeight, &value.CreateTime, &value.IsClosed, &value.UpdateTime)
+		err := rows.Scan(&value.ID, &value.HostID, &value.HostIp, &value.HostName, &value.GroupID, &value.GroupName, &value.Type, &value.Warning, &value.BlockHeight, &value.CreateTime, &value.IsClosed, &value.UpdateTime)
 		checkErr(err)
 		items = append(items, &value)
 	}

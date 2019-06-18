@@ -59,8 +59,8 @@ func (s *WebServer) routeHostGroupmgr() {
 func (s *WebServer) routeHostmgr() {
 	// 分页查看主机信息
 	s.route("POST", "/hostmgr/list", hostmgr.ListHosts)
-	// 查看单个主机
-	//s.route("GET", "/hostmgr/{id:int}", hostmgr.GetHost)
+	// 根据groupId查看主机
+	s.route("GET", "/hostmgr/{groupId:int}", hostmgr.QueryHostsByGroupId)
 	// 创建主机
 	s.route("POST", "/hostmgr/add", hostmgr.AddHost)
 	// 修改主机
@@ -105,7 +105,7 @@ func (s *WebServer) routeMonitormgr() {
 	//根据时间段查看节点资源信息
 	s.route("GET", "/monitormgr/resourcelist/{hostId:int}", hostmgr.ListResource)
 	//根据groupId查看区块hash是否一致
-	s.route("GET", "/monitormgr/blockhash/{groupId:int}", hostmgr.GetBlockHash)
+	s.route("GET", "/monitormgr/hashcheck/{groupId:int}", hostmgr.GetBlockHash)
 }
 
 // 添加路由信息

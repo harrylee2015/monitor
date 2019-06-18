@@ -1,17 +1,15 @@
 package rpc
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"bytes"
-	common "github.com/33cn/chain33/common"
+	"github.com/33cn/chain33/common"
 	log "github.com/inconshreveable/log15"
 
 	"github.com/33cn/chain33/types"
 	"io/ioutil"
 	"net/http"
-	"os"
 )
 
 var (
@@ -51,38 +49,38 @@ func (c *RpcCtx) SetResultCb(cb Callback) {
 	c.cb = cb
 }
 
-func (c *RpcCtx) ReplyData() ([]byte, error) {
-	rpc, err := NewJSONClient(c.Addr)
-	if err != nil {
-		clog.Error(fmt.Sprintf("NewJsonClient have err:%v", err.Error()))
-		return nil, err
-	}
-
-	err = rpc.Call(c.Method, c.Params, c.Res)
-	if err != nil {
-		clog.Error(fmt.Sprintf("rpc.Call have err:%v", err.Error()))
-		return nil, err
-	}
-
-	// maybe format rpc result
-	var result interface{}
-	if c.cb != nil {
-		result, err = c.cb(c.Res)
-		if err != nil {
-			clog.Error(fmt.Sprintf("rpc.CallBack have err:%v", err.Error()))
-			return nil, err
-		}
-	} else {
-		result = c.Res
-	}
-
-	data, err := json.MarshalIndent(result, "", "    ")
-	if err != nil {
-		clog.Error(fmt.Sprintf("MarshalIndent have err:%v", err.Error()))
-		return nil, err
-	}
-	return data, nil
-}
+//func (c *RpcCtx) ReplyData() ([]byte, error) {
+//	rpc, err := NewJSONClient(c.Addr)
+//	if err != nil {
+//		clog.Error(fmt.Sprintf("NewJsonClient have err:%v", err.Error()))
+//		return nil, err
+//	}
+//
+//	err = rpc.Call(c.Method, c.Params, c.Res)
+//	if err != nil {
+//		clog.Error(fmt.Sprintf("rpc.Call have err:%v", err.Error()))
+//		return nil, err
+//	}
+//
+//	// maybe format rpc result
+//	var result interface{}
+//	if c.cb != nil {
+//		result, err = c.cb(c.Res)
+//		if err != nil {
+//			clog.Error(fmt.Sprintf("rpc.CallBack have err:%v", err.Error()))
+//			return nil, err
+//		}
+//	} else {
+//		result = c.Res
+//	}
+//
+//	data, err := json.MarshalIndent(result, "", "    ")
+//	if err != nil {
+//		clog.Error(fmt.Sprintf("MarshalIndent have err:%v", err.Error()))
+//		return nil, err
+//	}
+//	return data, nil
+//}
 
 func (c *RpcCtx) ReplyInterface() (interface{}, error) {
 	rpc, err := NewJSONClient(c.Addr)
@@ -111,21 +109,21 @@ func (c *RpcCtx) ReplyInterface() (interface{}, error) {
 	return result, nil
 }
 
-func (c *RpcCtx) RunWithoutMarshal() (string, error) {
-	var res string
-	rpc, err := NewJSONClient(c.Addr)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		return "", err
-	}
-
-	err = rpc.Call(c.Method, c.Params, &res)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		return "", err
-	}
-	return res, nil
-}
+//func (c *RpcCtx) RunWithoutMarshal() (string, error) {
+//	var res string
+//	rpc, err := NewJSONClient(c.Addr)
+//	if err != nil {
+//		fmt.Fprintln(os.Stderr, err)
+//		return "", err
+//	}
+//
+//	err = rpc.Call(c.Method, c.Params, &res)
+//	if err != nil {
+//		fmt.Fprintln(os.Stderr, err)
+//		return "", err
+//	}
+//	return res, nil
+//}
 
 func SendTransaction(tx *types.Transaction) (string, error) {
 	poststr := fmt.Sprintf(`{"jsonrpc":"2.0","id":2,"method":"Chain33.SendTransaction","params":[{"data":"%v"}]}`,

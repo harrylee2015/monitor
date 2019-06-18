@@ -1,5 +1,9 @@
 package model
 
+import (
+	"database/sql"
+)
+
 //group
 type GroupInfo struct {
 	GroupID   int64  `json:"groupId"`
@@ -87,6 +91,23 @@ type Warning struct {
 	ID      int64 `json:"id"`
 	HostID  int64 `json:"hostId"`
 	GroupID int64 `json:"groupId"`
+	//告警类型 1是内存告警，2是cpu超负荷，3是磁盘不足， 4表示代扣地址余额告警，5表示区块不一致告警
+	Type        int64  `json:"type"`
+	Warning     string `json:"warning"`
+	BlockHeight int64  `json:"blockHeight"`
+	CreateTime  int64  `json:"createTime"`
+	//是否处理过了 0表示没有处理，1表示处理过了
+	IsClosed   int64 `json:"isClosed"`
+	UpdateTime int64 `json:"updateTime"`
+}
+
+type WarningDetail struct {
+	ID        int64          `json:"id"`
+	HostID    sql.NullInt64  `json:"hostId"`
+	HostIp    sql.NullString `json:"hostIp"`
+	HostName  sql.NullString `json:"hostName"`
+	GroupID   int64          `json:"groupId"`
+	GroupName string         `json:"groupName"`
 	//告警类型 1是内存告警，2是cpu超负荷，3是磁盘不足， 4表示代扣地址余额告警，5表示区块不一致告警
 	Type        int64  `json:"type"`
 	Warning     string `json:"warning"`
