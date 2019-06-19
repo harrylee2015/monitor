@@ -1,6 +1,7 @@
 package hostmgr
 
 import (
+	"github.com/harrylee2015/monitor/model"
 	"github.com/harrylee2015/monitor/types"
 	. "github.com/harrylee2015/monitor/web/view/webutil"
 	"github.com/kataras/iris"
@@ -35,4 +36,16 @@ func GetResWaringByHostId(ctx iris.Context) {
 	}
 	items := types.GetDB().QueryWarningByHostId(id)
 	ctx.JSON(items)
+}
+
+func GetWaringByGroup(ctx iris.Context) {
+
+	bus := types.GetDB().QueryBusWarningCountByGroup()
+	res:= types.GetDB().QueryResWarningCountByGroup()
+	warning :=&model.ResonseWarningCount{
+		BusWarning:bus,
+		ResWarning:res,
+	}
+
+	ctx.JSON(warning)
 }

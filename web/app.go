@@ -92,6 +92,8 @@ func (s *WebServer) routeMonitormgr() {
 	s.route("GET", "/monitormgr/buswarning/{groupId:int}", hostmgr.GetBusWaringByGroupId)
 	// 根据hostId查看资源告警信息
 	s.route("GET", "/monitormgr/reswarning/{hostId:int}", hostmgr.GetResWaringByHostId)
+	//分组分类查看告警总数
+	s.route("GET", "/monitormgr/warning", hostmgr.GetWaringByGroup)
 	// 移除告警
 	s.route("POST", "/monitormgr/warning/remove", hostmgr.DeletewarningById)
 	// 批量移除告警

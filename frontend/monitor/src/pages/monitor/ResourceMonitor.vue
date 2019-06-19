@@ -19,48 +19,66 @@
       <div></div>
       <div>节点列表</div>
     </el-row>
-    <el-row class="content">
-      <el-collapse v-model="activeNodes" @change="handleNodeChange" accordion>
-        <el-collapse-item v-for="item in nodes" :key="item.hostId" :name="item.hostId">
-          <template slot="title">
-            <font class="group">{{item.hostName}}</font>
-          </template>
-          <div></div>
-          <div class="content chart">
-            <!-- <div class="title">代扣地址余额和时间的关系曲线</div> -->
-            <balance-chart style="height: 240px;width: 500px;" ref="balanceChart"></balance-chart>
-          </div>
-          <div>
-            <el-table
-              v-loading="loading"
-              :data="alarmTableData"
-              style="width: 100%"
-              size="small"
-              @selection-change="handleSelectionChange"
-            >
-              <el-table-column type="selection" width="55"></el-table-column>
-              <el-table-column prop="warning" align="left">
-                <template slot="header">
-                  <font color="red">异常警告</font>
-                </template>
-              </el-table-column>
-              <el-table-column align="center" width="60">
-                <template slot="header">
-                  <span class="opt-head-clear" @click="clearAlarm('M', null, null)">清除</span>
-                </template>
-                <template slot-scope="scope">
-                  <span class="opt-clear" @click="clearAlarm('S', scope.$index, scope.row)">清除</span>
-                </template>
-              </el-table-column>
-            </el-table>
-            <div class="corner left-top"></div>
-            <div class="corner left-bottom"></div>
-            <div class="corner right-top"></div>
-            <div class="corner right-bottom"></div>
-          </div>
-        </el-collapse-item>
-      </el-collapse>
-    </el-row>
+    <el-collapse v-model="activeNodes" @change="handleNodeChange" accordion>
+      <el-collapse-item v-for="(item) in nodes" :key="item.hostId" :name="item.hostId">
+        <template slot="title">
+          <font class="group">{{item.hostName}}</font>
+        </template>
+        <div class="content">
+          <el-row :gutter="10">
+            <el-col :span="8">
+              <div class="title">节点资源和时间的关系折线图</div>
+              <div class="chart">
+                <resource-chart
+                  style="height: 240px;width: 500px;"
+                  :ref="'resourceChart' + item.hostId"
+                ></resource-chart>
+              </div>
+            </el-col>
+            <!-- <el-col :span="8">
+              <div class="chart">
+                <balance-chart style="height: 240px;width: 250px;;" ref="balanceChart"></balance-chart>
+              </div>
+            </el-col>
+            <el-col :span="8">
+              <div class="chart">
+                <balance-chart style="height: 240px;width: 250px;" ref="balanceChart"></balance-chart>
+              </div>
+            </el-col>-->
+          </el-row>
+          <!-- <div class="title">代扣地址余额和时间的关系曲线</div> -->
+          <!-- <balance-chart style="height: 240px;width: 500px;" ref="balanceChart"></balance-chart> -->
+        </div>
+        <el-row class="content">
+          <el-table
+            v-loading="loading"
+            :data="alarmTableData"
+            style="width: 100%"
+            size="small"
+            @selection-change="handleSelectionChange"
+          >
+            <el-table-column type="selection" width="55"></el-table-column>
+            <el-table-column prop="warning" align="left">
+              <template slot="header">
+                <font color="red">异常警告</font>
+              </template>
+            </el-table-column>
+            <el-table-column align="center" width="60">
+              <template slot="header">
+                <span class="opt-head-clear" @click="clearAlarm('M', null, null)">清除</span>
+              </template>
+              <template slot-scope="scope">
+                <span class="opt-clear" @click="clearAlarm('S', scope.$index, scope.row)">清除</span>
+              </template>
+            </el-table-column>
+          </el-table>
+          <div class="corner left-top"></div>
+          <div class="corner left-bottom"></div>
+          <div class="corner right-top"></div>
+          <div class="corner right-bottom"></div>
+        </el-row>
+      </el-collapse-item>
+    </el-collapse>
   </div>
 </template>
 
@@ -71,21 +89,20 @@ import {
   addrBalance,
   balancelist,
   reswarning,
+  resourceList,
   warningRemove,
   warningBatchRemove,
   queryNodeListByGroupId
 } from "@/api/requestMethods";
 import { formatTime } from "@/api/dateUtil";
 import BalanceChart from "./BalanceChart.vue";
-import CpuChart from "./CpuChart.vue";
-import DiskChart from "./DiskChart.vue";
-import RamChart from "./RamChart.vue";
+import ResourceChart from "./ResourceChart.vue";
+// import DiskChart from "./DiskChart.vue";
+// import RamChart from "./RamChart.vue";
 export default {
   components: {
     BalanceChart,
-    CpuChart,
-    DiskChart,
-    RamChart
+    ResourceChart
   },
   data() {
     return {
@@ -138,14 +155,14 @@ export default {
           this.errMsg(err);
         });
     },
-    requestBalance(groupId) {
-      addrBalance(groupId).then(res => {
-        this.balance = res.data[0].balance / 100000000;
-        this.balanceUpdateTime = res.data[0].createTime * 1000;
-      });
+    // requestBalance(groupId) {
+    //   addrBalance(groupId).then(res => {
+    //     this.balance = res.data[0].balance / 100000000;
+    //     this.balanceUpdateTime = res.data[0].createTime * 1000;
+    //   });
 
-      this.$refs.balanceChart.updateChart(groupId);
-    },
+    //   // this.$refs.balanceChart.updateChart(groupId);
+    // },
     requestAlarm(hostId) {
       reswarning(hostId).then(res => {
         this.alarmTableData = res.data;
@@ -156,7 +173,11 @@ export default {
       this.requestData();
     },
     handleNodeChange(val) {
+      console.log("val:", val);
       this.requestAlarm(val);
+      let value = "resourceChart" + val;
+      console.log(this.$refs[value][0]);
+      this.$refs[value][0].updateResourceChart(val);
     },
     handleSelectionChange(val) {
       this.selection = val;
@@ -196,7 +217,7 @@ export default {
     },
     errMsg(err) {
       this.$message({
-        message: "网络错误，请稍后再试！",
+        message: "网络错误，请稍后再试",
         type: "error",
         offset: 125
       });

@@ -145,10 +145,15 @@ export const warningRemove = (data) => {
 export const warningBatchRemove = (data) => {
     return http.postFetch("monitormgr/warning/batchremove", data);
 }
-
-
+// -查看节点资源信息
+export const resourceList = (hostId) => {
+    return http.getFetch("monitormgr/resourcelist/" + hostId);
+}
 // 历史告警信息
 export const alarmHistory = (data) => {
     return http.postFetch("monitormgr/warning/history", data);
 }
-
+// 告警信息数
+export const alarmCount = () => {
+    return http.getFetch("monitormgr/warning");
+}

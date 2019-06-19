@@ -34,27 +34,29 @@ var (
 	InsertBalanceSql        = "INSERT INTO Balance (groupId, address, balance,createTime) VALUES (?,?,?,?)"
 	InsertWarningSql        = "INSERT INTO Warning (hostId,groupId,type,warning,blockHeight,createTime,isClosed,updateTime) VALUES (?,?,?,?,?,?,?,?)"
 
-	QueryGroupInfoCount          = "SELECT COUNT(*) FROM GroupInfo"
-	QueryHostInfoCount           = "SELECT COUNT(*) FROM HostInfo"
-	QueryGroupInfoByPageNum      = "SELECT * FROM GroupInfo LIMIT ? OFFSET ?"
-	QueryHostInfoByPageNum       = "SELECT * FROM HostInfo LIMIT ? OFFSET ?"
-	QueryHostInfoByGroupId       = "SELECT * FROM HostInfo WHERE groupId=? ORDER BY hostId ASC"
-	QueryPaymentAddressCount     = "SELECT COUNT(*) FROM PaymentAddress"
-	QueryPaymentAddressByPageNum = "SELECT * FROM PaymentAddress LIMIT ? OFFSET ?"
-	QueryPaymentAddress          = "SELECT * FROM PaymentAddress WHERE groupId=?"
-	QueryResourceInfo            = "SELECT * FROM ResourceInfo WHERE hostId=? ORDER BY createTime DESC limit ?"
-	QueryMonitorSql              = "SELECT * FROM Monitor WHERE groupId=? ORDER BY hostId ASC"
-	QueryMonitorById             = "SELECT * FROM Monitor WHERE groupId=? AND hostId=?"
-	QueryLastBalance             = "SELECT * FROM Balance WHERE groupId=? ORDER BY createTime DESC LIMIT 1"
-	QueryBalanceSql              = "SELECT * FROM Balance WHERE groupId=? ORDER BY createTime ASC"
-	QueryBusWarningCount         = "SELECT COUNT(*) FROM Warning WHERE isClosed=0  AND groupId=? AND type IN ( 4, 5 )"
-	QueryResWarningCount         = "SELECT COUNT(*) FROM Warning WHERE isClosed=0  AND groupId=? AND type IN ( 1, 2, 3 )"
-	QueryBusWarningByGroupId     = "SELECT * FROM Warning WHERE isClosed=0 AND groupId=? AND type IN ( 4, 5 ) ORDER BY createTime ASC"
-	QueryResWarningByHostId      = "SELECT * FROM Warning WHERE isClosed=0 AND hostId=? AND type IN ( 1, 2, 3 ) ORDER BY createTime ASC"
-	QueryWarningByGroupIdAndType = "SELECT * FROM Warning WHERE isClosed=0  AND groupId=? AND type=?"
-	QueryWarningByHostIdAndType  = "SELECT * FROM Warning WHERE isClosed=0  AND hostId=? AND type=?"
-	QueryHistoryWarningCount     = "SELECT COUNT(*) FROM Warning WHERE isClosed=1"
-	QueryHistoryWarning          = "SELECT warning.id,Warning.hostId,HostInfo.hostIp,HostInfo.hostName,Warning.groupId,GroupInfo.groupName,Warning.type,Warning.warning,Warning.blockHeight,Warning.createTime,Warning.isClosed,Warning.updateTime FROM Warning LEFT OUTER JOIN HostInfo ON Warning.hostId = HostInfo.hostId LEFT OUTER JOIN GroupInfo ON Warning.groupId = GroupInfo.groupId WHERE Warning.isClosed=1 ORDER BY Warning.createTime DESC LIMIT ? OFFSET ?"
+	QueryGroupInfoCount           = "SELECT COUNT(*) FROM GroupInfo"
+	QueryHostInfoCount            = "SELECT COUNT(*) FROM HostInfo"
+	QueryGroupInfoByPageNum       = "SELECT * FROM GroupInfo LIMIT ? OFFSET ?"
+	QueryHostInfoByPageNum        = "SELECT * FROM HostInfo LIMIT ? OFFSET ?"
+	QueryHostInfoByGroupId        = "SELECT * FROM HostInfo WHERE groupId=? ORDER BY hostId ASC"
+	QueryPaymentAddressCount      = "SELECT COUNT(*) FROM PaymentAddress"
+	QueryPaymentAddressByPageNum  = "SELECT * FROM PaymentAddress LIMIT ? OFFSET ?"
+	QueryPaymentAddress           = "SELECT * FROM PaymentAddress WHERE groupId=?"
+	QueryResourceInfo             = "SELECT * FROM ResourceInfo WHERE hostId=? ORDER BY createTime DESC limit ?"
+	QueryMonitorSql               = "SELECT * FROM Monitor WHERE groupId=? ORDER BY hostId ASC"
+	QueryMonitorById              = "SELECT * FROM Monitor WHERE groupId=? AND hostId=?"
+	QueryLastBalance              = "SELECT * FROM Balance WHERE groupId=? ORDER BY createTime DESC LIMIT 1"
+	QueryBalanceSql               = "SELECT * FROM Balance WHERE groupId=? ORDER BY createTime ASC"
+	QueryBusWarningCount          = "SELECT COUNT(*) FROM Warning WHERE isClosed=0  AND groupId=? AND type IN ( 4, 5 )"
+	QueryResWarningCount          = "SELECT COUNT(*) FROM Warning WHERE isClosed=0  AND groupId=? AND type IN ( 1, 2, 3 )"
+	QueryBusWarningCountByGroupId = "SELECT COUNT(Warning.id),Warning.groupId,groupInfo.groupName FROM Warning LEFT OUTER JOIN GroupInfo ON Warning.groupId=GroupInfo.groupId WHERE isClosed=0 AND type IN ( 4, 5 )"
+	QueryResWarningCountByGroupId = "SELECT COUNT(Warning.id),Warning.groupId,groupInfo.groupName FROM Warning LEFT OUTER JOIN GroupInfo ON Warning.groupId=GroupInfo.groupId WHERE isClosed=0 AND type IN ( 1, 2, 3)"
+	QueryBusWarningByGroupId      = "SELECT * FROM Warning WHERE isClosed=0 AND groupId=? AND type IN ( 4, 5 ) ORDER BY createTime ASC"
+	QueryResWarningByHostId       = "SELECT * FROM Warning WHERE isClosed=0 AND hostId=? AND type IN ( 1, 2, 3 ) ORDER BY createTime ASC"
+	QueryWarningByGroupIdAndType  = "SELECT * FROM Warning WHERE isClosed=0  AND groupId=? AND type=?"
+	QueryWarningByHostIdAndType   = "SELECT * FROM Warning WHERE isClosed=0  AND hostId=? AND type=?"
+	QueryHistoryWarningCount      = "SELECT COUNT(*) FROM Warning WHERE isClosed=1"
+	QueryHistoryWarning           = "SELECT warning.id,Warning.hostId,HostInfo.hostIp,HostInfo.hostName,Warning.groupId,GroupInfo.groupName,Warning.type,Warning.warning,Warning.blockHeight,Warning.createTime,Warning.isClosed,Warning.updateTime FROM Warning LEFT OUTER JOIN HostInfo ON Warning.hostId = HostInfo.hostId LEFT OUTER JOIN GroupInfo ON Warning.groupId = GroupInfo.groupId WHERE Warning.isClosed=1 ORDER BY Warning.createTime DESC LIMIT ? OFFSET ?"
 
 	UpdateGroupInfoSql      = "UPDATE GroupInfo SET groupName=?,describe=?,title=? WHERE groupId=?"
 	UpdatePaymentAddressSql = "UPDATE PaymentAddress SET groupId=?,groupName=?,address=? WHERE id=?"
@@ -174,6 +176,46 @@ func (mdb *MonitorDB) QueryCount(types int) (count int64) {
 		checkErr(err)
 	}
 	return count
+}
+
+func (mdb *MonitorDB) QueryBusWarningCountByGroup() (items []*model.WarningCount) {
+	mdb.Lock()
+	defer mdb.Unlock()
+	stmt, err := mdb.db.Prepare(QueryBusWarningCountByGroupId)
+	checkErr(err)
+	defer stmt.Close()
+
+	rows, err := stmt.Query()
+	checkErr(err)
+	defer rows.Close()
+	for rows.Next() {
+		value := model.WarningCount{}
+		//TODO:这里应该是字段一一对应关系
+		err := rows.Scan(&value.Count, &value.GroupId, &value.GroupName)
+		checkErr(err)
+		items = append(items, &value)
+	}
+	return items
+}
+
+func (mdb *MonitorDB) QueryResWarningCountByGroup() (items []*model.WarningCount) {
+	mdb.Lock()
+	defer mdb.Unlock()
+	stmt, err := mdb.db.Prepare(QueryResWarningCountByGroupId)
+	checkErr(err)
+	defer stmt.Close()
+
+	rows, err := stmt.Query()
+	checkErr(err)
+	defer rows.Close()
+	for rows.Next() {
+		value := model.WarningCount{}
+		//TODO:这里应该是字段一一对应关系
+		err := rows.Scan(&value.Count, &value.GroupId, &value.GroupName)
+		checkErr(err)
+		items = append(items, &value)
+	}
+	return items
 }
 
 // QueryGroupInfoByPageNum

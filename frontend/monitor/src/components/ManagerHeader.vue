@@ -2,35 +2,97 @@
   <div class="manager_header">
     <section class="empty">
       <!-- <div class="line left-top"></div>
-      <div class="line left-bottom"></div> -->
+      <div class="line left-bottom"></div>-->
     </section>
-   <section class="title" >chain33平行链运行监控系统</section>
+    <section class="title">chain33平行链运行监控系统</section>
     <!-- <section class="title" >chain33平行链运行监控系统</section> -->
-    <!-- <section class="alarm">
+    <section class="alarm">
       <el-popover placement="bottom" width="200" trigger="click" id="alarm-popover">
         <ul class="alarm_items">
-          <li>分组1节点业务异常警告<font> 3</font></li>
-          <li>分组1节点业务异常警告<font> 3</font></li>
-          <li>分组1节点业务异常警告<font> 3</font></li>
-          <li>分组1节点业务异常警告<font> 3</font></li>
+          <li v-for="item in options" :key="item.groupId" :type="item.type" :value="item.count">
+            分组{{item.groupName}}{{item.type}}
+            <font>{{item.count}}</font>
+            <template v-if="item.flag">
+              <router-link to="service-monitor"></router-link>
+            </template>
+            <template v-else>
+              <router-link to="resourceMonitor"></router-link>
+            </template>
+          </li>
         </ul>
+        <!-- <ul class="alarm_items">
+          <li>
+            分组1节点业务异常警告
+            <font>3</font>
+          </li>
+          <li>
+            分组1节点业务异常警告
+            <font>3</font>
+          </li>
+          <li>
+            分组1节点业务异常警告
+            <font>3</font>
+          </li>
+          <li>
+            分组1节点业务异常警告
+            <font>3</font>
+          </li>
+        </ul>-->
         <div slot="reference" class="btn">
           <div>异常告警</div>
           <div class="arrow"></div>
-          <el-badge :value="4"></el-badge>
+          <el-badge :value="options.length"></el-badge>
         </div>
       </el-popover>
-    </section> -->
+    </section>
   </div>
 </template>
 
 <script>
 import { getRequestData, logout } from "@/api/requestMethods";
+import { alarmCount } from "@/api/requestMethods";
 export default {
   data() {
-    return {};
+    return {
+      alarm: {},
+      options: []
+    };
   },
-  methods: {}
+  methods: {
+    requestData() {
+      alarmCount()
+        .then(res => {
+          if (res.data) {
+            for (let item of res.data.busWarning) {
+              this.options.push({
+                groupName: item.groupName,
+                groupId: item.groupId * 1,
+                type: "业务告警",
+                count: item.count,
+                flag: false
+              });
+            }
+            for (let item of res.data.resWarning) {
+              this.options.push({
+                groupName: item.groupName,
+                groupId: item.groupId * 1,
+                type: "资源告警",
+                count: item.count,
+                flag: true
+              });
+            }
+            // this.group = this.options[0].value;
+          }
+        })
+        .catch(err => {
+          this.errMsg(err);
+        });
+    }
+  },
+  mounted() {
+    // this.$store.commit("updateDefaultActive", "4");
+    this.requestData();
+  }
 };
 </script>
 
@@ -101,12 +163,12 @@ export default {
   border: 1px solid transparent;
 }
 .alarm_items > li:hover {
-  border: 1px solid #02426D;
+  border: 1px solid #02426d;
   border-radius: 8px;
   cursor: pointer;
-  background: #02426D;
+  background: #02426d;
 }
-.alarm_items > li:hover > font{
+.alarm_items > li:hover > font {
   color: yellow;
 }
 /* .manager_header .line {

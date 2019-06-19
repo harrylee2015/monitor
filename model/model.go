@@ -128,3 +128,13 @@ type Page struct {
 	PageNum  int64 `json:"pageNum"`
 	PageSize int64 `json:"pageSize"`
 }
+type WarningCount struct {
+	Count     int64  `json:"count"`
+	GroupId   int64  `json:"groupId"`
+	GroupName string `json:"groupName"`
+}
+
+type ResonseWarningCount struct {
+	BusWarning []*WarningCount `json:"busWarning"`
+	ResWarning []*WarningCount `json:"resWarning"`
+}
