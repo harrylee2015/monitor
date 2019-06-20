@@ -10,8 +10,8 @@ import (
 )
 
 var (
-	jlog     = log.New("module", "common")
-	register = make(map[string]http.Client)
+	jlog = log.New("module", "common")
+	//register = make(map[string]http.Client)
 )
 
 const JSON_RPC_VERSION = "2.0"
@@ -49,31 +49,27 @@ func (client *JSONClient) Call(method string, params, resp interface{}) error {
 	//poststr := fmt.Sprintf(`{"jsonrpc":"2.0","id":2,"method":"Chain33.SendTransaction","params":[{"data":"%v"}]}`,
 	//	common.ToHex(types.Encode(tx)))
 	jlog.Debug("request JsonStr", string(data), "")
-	httpclient, ok := register[client.url]
-	if !ok {
-		tr := http.Transport{
-			DisableKeepAlives: false}
-		httpclient = http.Client{
-			Transport: &tr,
-		}
-		register[client.url] = httpclient
-	}
 	//改为短链接
-
-	req2, err := http.NewRequest(http.MethodPost, client.url, bytes.NewBuffer(data))
-	if err != nil {
-		return err
-	}
-	resp2, err := httpclient.Do(req2)
-	if err != nil {
-		return err
-	}
-	//postresp, err := http.Post(client.url, "application/json", bytes.NewBuffer(data))
+	//tr := http.Transport{
+	//	DisableKeepAlives: false,
+	//}
+	//httpclient := http.Client{
+	//	Transport: &tr,
+	//}
+	//req2, err := http.NewRequest(http.MethodPost, client.url, bytes.NewBuffer(data))
 	//if err != nil {
 	//	return err
 	//}
-	defer resp2.Body.Close()
-	b, err := ioutil.ReadAll(resp2.Body)
+	//resp2, err := httpclient.Do(req2)
+	//if err != nil {
+	//	return err
+	//}
+	postresp, err := http.Post(client.url, "application/json", bytes.NewBuffer(data))
+	if err != nil {
+		return err
+	}
+	defer postresp.Body.Close()
+	b, err := ioutil.ReadAll(postresp.Body)
 	if err != nil {
 		return err
 	}

@@ -36,8 +36,17 @@ type CmdInfo struct {
 	Port     int
 	Cmd      string
 }
+type ExecClient struct {
+	SSHClient *ssh.Client
 
-func sshconnect(user, password, host string, port int) (*ssh.Session, error) {
+	SSHSession *ssh.Session
+}
+
+func (client *ExecClient) Close() {
+	client.SSHSession.Close()
+	client.SSHClient.Close()
+}
+func sshconnect(user, password, host string, port int) (*ExecClient, error) {
 	var (
 		auth         []ssh.AuthMethod
 		addr         string
@@ -66,21 +75,22 @@ func sshconnect(user, password, host string, port int) (*ssh.Session, error) {
 	}
 	// create session
 	if session, err = client.NewSession(); err != nil {
+		client.Close()
 		return nil, err
 	}
-	return session, nil
+	return &ExecClient{SSHClient: client, SSHSession: session}, nil
 }
 
 func RemoteExec(cmdInfo *CmdInfo) error {
 	//A Session only accepts one call to Run, Start or Shell.
-	session, err := sshconnect(cmdInfo.UserName, cmdInfo.PassWord, cmdInfo.HostIp, cmdInfo.Port)
+	client, err := sshconnect(cmdInfo.UserName, cmdInfo.PassWord, cmdInfo.HostIp, cmdInfo.Port)
 	if err != nil {
 		return err
 	}
-	defer session.Close()
-	session.Stdout = os.Stdout
-	session.Stderr = os.Stderr
-	err = session.Run(cmdInfo.Cmd)
+	defer client.Close()
+	client.SSHSession.Stdout = os.Stdout
+	client.SSHSession.Stderr = os.Stderr
+	err = client.SSHSession.Run(cmdInfo.Cmd)
 	return err
 }
 
@@ -127,15 +137,15 @@ func Exec_Scp(localFilePath, remotePath string, host *model.HostInfo) error {
 	return nil
 }
 func Exec_CollectResource(host *model.HostInfo) (*model.ResourceInfo, error) {
-	session, err := sshconnect(host.UserName, host.PassWd, host.HostIp, int(host.SSHPort))
+	client, err := sshconnect(host.UserName, host.PassWd, host.HostIp, int(host.SSHPort))
 	if err != nil {
 		log.Error("Exec_CollectResource", "sshconnect err:", err.Error())
 		return nil, err
 	}
-	defer session.Close()
+	defer client.Close()
 
 	// 创建输入管道，以支持顺序执行多个命令
-	pipe, err := session.StdinPipe()
+	pipe, err := client.SSHSession.StdinPipe()
 	if err != nil {
 		log.Error("Exec_CollectResource", "StdinPipe err:", err.Error())
 		return nil, err
@@ -146,10 +156,10 @@ func Exec_CollectResource(host *model.HostInfo) (*model.ResourceInfo, error) {
 	berr := bytes.NewBuffer(nil)
 	//session.Stdout = os.Stdout
 	//session.Stderr = os.Stdout
-	session.Stdout = bout
-	session.Stderr = berr
+	client.SSHSession.Stdout = bout
+	client.SSHSession.Stderr = berr
 	// 启动远程执行shell
-	err = session.Shell()
+	err = client.SSHSession.Shell()
 	if err != nil {
 		log.Error("Exec_CollectResource", "Shell err:", err.Error())
 		return nil, err
@@ -164,7 +174,7 @@ func Exec_CollectResource(host *model.HostInfo) (*model.ResourceInfo, error) {
 			return nil, err
 		}
 	}
-	err = session.Wait()
+	err = client.SSHSession.Wait()
 	if err != nil {
 		log.Error("Exec_CollectResource", "Wait err:", err.Error())
 		return nil, err

@@ -35,15 +35,18 @@ func NewSftpClient(host *model.HostInfo) (*SftpClient, error) {
 	addr = fmt.Sprintf("%s:%d", host.HostIp, host.SSHPort)
 	if sshClient, err = ssh.Dial("tcp", addr, clientConfig); err != nil {
 		return nil, err
-	} // create sftp client
+	}
+	// create sftp client
 	if sftpClient, err = sftp.NewClient(sshClient); err != nil {
+		sshClient.Close()
 		return nil, err
 	}
-	return &SftpClient{sftpClient}, nil
+	return &SftpClient{sftpClient, sshClient}, nil
 }
 
 type SftpClient struct {
-	client *sftp.Client
+	Sftpclient *sftp.Client
+	SSHClient  *ssh.Client
 }
 
 func (ftp *SftpClient) UploadFile(localFile string, remoteFile string) error {
@@ -56,9 +59,9 @@ func (ftp *SftpClient) UploadFile(localFile string, remoteFile string) error {
 
 	dir := filepath.Dir(remoteFile)
 	if !ftp.Exists(dir) {
-		ftp.client.MkdirAll(dir)
+		ftp.Sftpclient.MkdirAll(dir)
 	}
-	dstFile, err := ftp.client.Create(remoteFile)
+	dstFile, err := ftp.Sftpclient.Create(remoteFile)
 	if err != nil {
 		log.Error("sftpClient.Create error :", "error", err, "file", remoteFile)
 		return err
@@ -75,7 +78,7 @@ func (ftp *SftpClient) UploadFile(localFile string, remoteFile string) error {
 }
 
 func (ftp *SftpClient) DownloadFile(localFile string, remoteFile string) error {
-	fs, err := ftp.client.Open(remoteFile)
+	fs, err := ftp.Sftpclient.Open(remoteFile)
 	if err != nil {
 		log.Error("open remote file error", "error", err, "file", remoteFile)
 		return err
@@ -89,7 +92,7 @@ func (ftp *SftpClient) DownloadFile(localFile string, remoteFile string) error {
 
 func (ftp *SftpClient) Exists(remoteFile string) bool {
 	// check it's there
-	_, err := ftp.client.Lstat(remoteFile)
+	_, err := ftp.Sftpclient.Lstat(remoteFile)
 	if err != nil {
 		log.Info(err.Error())
 		return false
@@ -98,5 +101,11 @@ func (ftp *SftpClient) Exists(remoteFile string) bool {
 }
 
 func (ftp *SftpClient) DeleteFile(remoteFile string) error {
-	return ftp.client.Remove(remoteFile)
+	return ftp.Sftpclient.Remove(remoteFile)
+}
+
+//用完一定要关闭链接，不然会造成资源泄漏
+func (ftp *SftpClient) Close() {
+	ftp.Sftpclient.Close()
+	ftp.SSHClient.Close()
 }

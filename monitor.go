@@ -7,8 +7,11 @@ import (
 	"github.com/harrylee2015/monitor/conf"
 	"github.com/harrylee2015/monitor/types"
 	"github.com/harrylee2015/monitor/web"
+	"log"
+	"net/http"
 	"os"
 	"path/filepath"
+	_ "net/http/pprof"
 	"sync"
 )
 
@@ -27,8 +30,10 @@ func main() {
 	}
 	conf.SetConf(&cfg)
 	types.RegisterDB()
-
 	server := web.NewWebServer(":8080")
+	go func() {
+		log.Println(http.ListenAndServe(":10000",nil))
+	}()
 	server.Start()
 
 	types.CloseDB()

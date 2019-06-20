@@ -166,13 +166,17 @@ func collectResourceData(db *DB.MonitorDB) {
 				log15.Error("collectResourceData", "NewSftpClient err", err.Error())
 				continue
 			}
+
 			if !sftClient.Exists(exec.GetRemoteScriptsPath()) {
 				err = sftClient.UploadFile(exec.GetScriptsPath(), exec.GetRemoteScriptsPath())
+				sftClient.Close()
 				if err != nil {
 					log15.Error("collectResourceData", "UploadFile err", err.Error())
 					continue
 				}
 			}
+			//手动关闭连接，不然会造成资源泄漏
+			sftClient.Close()
 			resource, err := exec.Exec_CollectResource(item)
 			if err != nil {
 				log15.Error("collectResourceData", "err", err.Error())
