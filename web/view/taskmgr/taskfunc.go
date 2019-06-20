@@ -128,7 +128,7 @@ func collectBalanceData(db *DB.MonitorDB) {
 							warning := &model.Warning{
 								GroupID:  balance.GroupID,
 								Type:     DB.BALANCE_WARING,
-								Warning:  fmt.Sprintf("groupId %d balance is %v,please handle it as soon as possible!", balance.GroupID, balance.Balance/1e8),
+								Warning:  fmt.Sprintf("分组%v 当前代扣地址余额 %v BTY,不足 %v BTY,请尽快充值!", balance.GroupID, balance.Balance/1e8, conf.BalanceWarning),
 								IsClosed: 0,
 							}
 							db.InsertData(warning)
@@ -186,14 +186,14 @@ func collectResourceData(db *DB.MonitorDB) {
 			resource.GroupID = item.GroupID
 			db.InsertData(resource)
 			//TODO 对比告警指标，生成告警信息
-			if resource.DiskUsedPercent >= conf.CpuUsedPercentWarning {
+			if resource.DiskUsedPercent >= conf.DiskUsedPercentWarning {
 				warnings := db.QueryWarningByHostIdAndType(item.HostID, DB.DISK_WARING)
 				if len(warnings) == 0 {
 					warning := &model.Warning{
 						HostID:   item.HostID,
 						GroupID:  item.GroupID,
 						Type:     DB.DISK_WARING,
-						Warning:  fmt.Sprintf("%s disk usedPercent is %v,please handle it as soon as possible!", item.HostIp, resource.DiskUsedPercent),
+						Warning:  fmt.Sprintf("分组%v,%s 节点，disk usedPercent %f%%,达到预警值%f%%!!", item.GroupID, item.HostIp, resource.DiskUsedPercent, conf.DiskUsedPercentWarning),
 						IsClosed: 0,
 					}
 					db.InsertData(warning)
@@ -207,7 +207,7 @@ func collectResourceData(db *DB.MonitorDB) {
 						HostID:   item.HostID,
 						GroupID:  item.GroupID,
 						Type:     DB.CPU_WARING,
-						Warning:  fmt.Sprintf("%s cpu usedPercent is %v,please handle it as soon as possible!", item.HostIp, resource.CpuUsedPercent),
+						Warning:  fmt.Sprintf("分组%v,%s 节点，cpu usedPercent是%f%%,达到预警值%f%%!", item.GroupID, item.HostIp, resource.CpuUsedPercent, conf.CpuUsedPercentWarning),
 						IsClosed: 0,
 					}
 					db.InsertData(warning)
@@ -221,7 +221,7 @@ func collectResourceData(db *DB.MonitorDB) {
 						HostID:   item.HostID,
 						GroupID:  item.GroupID,
 						Type:     DB.MEM_WARNING,
-						Warning:  fmt.Sprintf("%s mem usedPercent is %v,please handle it as soon as possible!", item.HostIp, resource.MemUsedPercent),
+						Warning:  fmt.Sprintf("分组%v,%s 节点，mem usedPercent是%f%%,达到预警值%f%%!", item.GroupID, item.HostIp, resource.MemUsedPercent, conf.MemUsedPercentWarning),
 						IsClosed: 0,
 					}
 					db.InsertData(warning)
@@ -252,6 +252,7 @@ func checkBlockHash(db *DB.MonitorDB) {
 			return
 		}
 		for _, item := range items {
+			//TODO这里需要做优化
 			monitors := db.QueryMonitor(item.GroupID)
 			if len(monitors) == 0 {
 				continue
@@ -313,7 +314,7 @@ func checkBlockHash(db *DB.MonitorDB) {
 									HostID:   k.HostID,
 									GroupID:  k.GroupID,
 									Type:     DB.HASH_WARING,
-									Warning:  fmt.Sprintf("%s node,on %v height,blockHash: %s,blockhash is different from others nodes ,please handle it as soon as possible!", k.HostIp, height+1, v),
+									Warning:  fmt.Sprintf("分组 %v,%s节点,on %v 高度 ,blockHash: %s,blockhash 与其他节点blockhash不一致!", k.GroupID, k.HostIp, height+1, v),
 									IsClosed: 0,
 								}
 								db.InsertData(warning)

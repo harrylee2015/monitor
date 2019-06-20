@@ -46,7 +46,7 @@ func (client *ExecClient) Close() {
 	client.SSHSession.Close()
 	client.SSHClient.Close()
 }
-func sshconnect(user, password, host string, port int) (*ExecClient, error) {
+func NewExecClient(user, password, host string, port int) (*ExecClient, error) {
 	var (
 		auth         []ssh.AuthMethod
 		addr         string
@@ -83,7 +83,7 @@ func sshconnect(user, password, host string, port int) (*ExecClient, error) {
 
 func RemoteExec(cmdInfo *CmdInfo) error {
 	//A Session only accepts one call to Run, Start or Shell.
-	client, err := sshconnect(cmdInfo.UserName, cmdInfo.PassWord, cmdInfo.HostIp, cmdInfo.Port)
+	client, err := NewExecClient(cmdInfo.UserName, cmdInfo.PassWord, cmdInfo.HostIp, cmdInfo.Port)
 	if err != nil {
 		return err
 	}
@@ -137,7 +137,7 @@ func Exec_Scp(localFilePath, remotePath string, host *model.HostInfo) error {
 	return nil
 }
 func Exec_CollectResource(host *model.HostInfo) (*model.ResourceInfo, error) {
-	client, err := sshconnect(host.UserName, host.PassWd, host.HostIp, int(host.SSHPort))
+	client, err := NewExecClient(host.UserName, host.PassWd, host.HostIp, int(host.SSHPort))
 	if err != nil {
 		log.Error("Exec_CollectResource", "sshconnect err:", err.Error())
 		return nil, err
@@ -165,7 +165,7 @@ func Exec_CollectResource(host *model.HostInfo) (*model.ResourceInfo, error) {
 		return nil, err
 	}
 	commands := genCollectScript()
-	fmt.Println("cmds:", commands)
+	log.Debug("Exec_CollectResource","cmds:", commands)
 	// 执行指定脚本内容
 	for _, cmd := range commands {
 		_, err := fmt.Fprintf(pipe, "%s\n", cmd)
