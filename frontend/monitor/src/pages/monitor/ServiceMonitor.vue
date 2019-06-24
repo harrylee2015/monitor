@@ -176,7 +176,11 @@ export default {
     },
 
     handleGroupChange(val) {
-      this.requestData();
+      this.group = val;
+      this.requestNode(this.group);
+      this.requestBalance(this.group);
+      this.requestAlarm(this.group);
+      this.requestHashCheck(this.group);
     },
 
     handleSelectionChange(val) {
@@ -235,11 +239,11 @@ export default {
       let date = new Date(time);
       return formatTime(date, "yyyy-MM-dd hh:mm:ss");
     },
-    formatCheck(result){
-      if (result.isConsistent==true){
-        return "正常"
-      }else {
-        return "异常"
+    formatCheck(result) {
+      if (result.isConsistent == true) {
+        return "正常";
+      } else {
+        return "异常";
       }
     }
   }

@@ -170,7 +170,8 @@ export default {
     },
 
     handleGroupChange(val) {
-      this.requestData();
+      this.group = val;
+      this.requestNodeList(this.group);
     },
     handleNodeChange(val) {
       console.log("val:", val);
