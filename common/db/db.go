@@ -3,12 +3,14 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	"github.com/harrylee2015/monitor/conf"
 	"sync"
+
+	"github.com/harrylee2015/monitor/conf"
+
+	"time"
 
 	"github.com/harrylee2015/monitor/model"
 	_ "github.com/mattn/go-sqlite3"
-	"time"
 )
 
 const (
@@ -26,9 +28,9 @@ const (
 )
 
 var (
-	InsertGroupInfoSql      = "INSERT INTO GroupInfo (groupName, describe, title) VALUES (?,?,?)"
+	InsertGroupInfoSql      = "INSERT INTO GroupInfo (groupName, describe, title,email) VALUES (?,?,?,?)"
 	InsertPaymentAddressSql = "INSERT INTO PaymentAddress (groupId, groupName, address) VALUES (?,?,?)"
-	InsertHostInfoSql       = "INSERT INTO HostInfo (hostName,groupId,groupName, hostIp, sshPort,userName,passWd,isCheckResource,processName,serverPort,createTime,updateTime) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"
+	InsertHostInfoSql       = "INSERT INTO HostInfo (hostName,groupId,groupName, hostIp, sshPort,userName,passWd,isCheckResource,processName,serverPort,mainNet,netPort,createTime,updateTime) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 	InsertResourceInfoSql   = "INSERT INTO ResourceInfo (groupId, hostId, memTotal,memUsedPercent,cpuTotal,cpuUsedPercent,diskTotal,diskUsedPercent,createTime) VALUES (?,?,?,?,?,?,?,?,?)"
 	InsertMonitorSql        = "INSERT INTO Monitor (groupId, hostId, hostIp,serverPort,serverStatus,lastBlockHeight,isSync,lastBlockHash,updateTime) VALUES (?,?,?,?,?,?,?,?,?)"
 	InsertBalanceSql        = "INSERT INTO Balance (groupId, address, balance,createTime) VALUES (?,?,?,?)"
@@ -37,11 +39,13 @@ var (
 	QueryGroupInfoCount           = "SELECT COUNT(*) FROM GroupInfo"
 	QueryHostInfoCount            = "SELECT COUNT(*) FROM HostInfo"
 	QueryGroupInfoByPageNum       = "SELECT * FROM GroupInfo LIMIT ? OFFSET ?"
-	QueryHostInfoByPageNum        = "SELECT * FROM HostInfo LIMIT ? OFFSET ?"
+	QueryHostInfoByPageNum        = "SELECT HostInfo.hostId, HostInfo.hostName,HostInfo.groupId,GroupInfo.groupName, HostInfo.hostIp, HostInfo.sshPort,HostInfo.userName,HostInfo.passWd,HostInfo.isCheckResource,HostInfo.processName,HostInfo.serverPort,HostInfo.mainNet,HostInfo.netPort,HostInfo.createTime,HostInfo.updateTime,GroupInfo.email FROM HostInfo LEFT OUTER JOIN GroupInfo ON HostInfo.groupId = GroupInfo.groupId LIMIT ? OFFSET ?"
 	QueryHostInfoByGroupId        = "SELECT * FROM HostInfo WHERE groupId=? ORDER BY hostId ASC"
+	QueryHostInfoList             = "SELECT HostInfo.hostId, HostInfo.hostName,HostInfo.groupId,GroupInfo.groupName, HostInfo.hostIp, HostInfo.sshPort,HostInfo.userName,HostInfo.passWd,HostInfo.isCheckResource,HostInfo.processName,HostInfo.serverPort,HostInfo.mainNet,HostInfo.netPort,HostInfo.createTime,HostInfo.updateTime,GroupInfo.email FROM HostInfo LEFT OUTER JOIN GroupInfo ON HostInfo.groupId = GroupInfo.groupId LIMIT ? OFFSET ?"
 	QueryPaymentAddressCount      = "SELECT COUNT(*) FROM PaymentAddress"
-	QueryPaymentAddressByPageNum  = "SELECT * FROM PaymentAddress LIMIT ? OFFSET ?"
+	QueryPaymentAddressByPageNum  = "SELECT PaymentAddress.id,PaymentAddress.groupId, GroupInfo.groupName, PaymentAddress.address,GroupInfo.email FROM PaymentAddress LEFT OUTER JOIN GroupInfo ON PaymentAddress.groupId = GroupInfo.groupId LIMIT ? OFFSET ?"
 	QueryPaymentAddress           = "SELECT * FROM PaymentAddress WHERE groupId=?"
+	QueryPaymentAddressList       = "SELECT PaymentAddress.id,PaymentAddress.groupId, GroupInfo.groupName, PaymentAddress.address,GroupInfo.email FROM PaymentAddress LEFT OUTER JOIN GroupInfo ON PaymentAddress.groupId = GroupInfo.groupId LIMIT ? OFFSET ?"
 	QueryResourceInfo             = "SELECT * FROM ResourceInfo WHERE hostId=? ORDER BY createTime DESC limit ?"
 	QueryMonitorSql               = "SELECT * FROM Monitor WHERE groupId=? ORDER BY hostId ASC"
 	QueryMonitorById              = "SELECT * FROM Monitor WHERE groupId=? AND hostId=?"
@@ -58,9 +62,9 @@ var (
 	QueryHistoryWarningCount      = "SELECT COUNT(*) FROM Warning WHERE isClosed=1"
 	QueryHistoryWarning           = "SELECT warning.id,Warning.hostId,HostInfo.hostIp,HostInfo.hostName,Warning.groupId,GroupInfo.groupName,Warning.type,Warning.warning,Warning.blockHeight,Warning.createTime,Warning.isClosed,Warning.updateTime FROM Warning LEFT OUTER JOIN HostInfo ON Warning.hostId = HostInfo.hostId LEFT OUTER JOIN GroupInfo ON Warning.groupId = GroupInfo.groupId WHERE Warning.isClosed=1 ORDER BY Warning.createTime DESC LIMIT ? OFFSET ?"
 
-	UpdateGroupInfoSql      = "UPDATE GroupInfo SET groupName=?,describe=?,title=? WHERE groupId=?"
+	UpdateGroupInfoSql      = "UPDATE GroupInfo SET groupName=?,describe=?,title=?,email=? WHERE groupId=?"
 	UpdatePaymentAddressSql = "UPDATE PaymentAddress SET groupId=?,groupName=?,address=? WHERE id=?"
-	UpdateHostInfoSql       = "UPDATE HostInfo SET hostName=?,hostIp=?,sshPort=?,userName=?,passWd=?,isCheckResource=?,processName=?,serverPort=?,updateTime=? WHERE hostId=?"
+	UpdateHostInfoSql       = "UPDATE HostInfo SET hostName=?,hostIp=?,sshPort=?,userName=?,passWd=?,isCheckResource=?,processName=?,serverPort=?,mainNet=?,netPort=?,updateTime=? WHERE hostId=?"
 	UpdateMonitorSql        = "UPDATE Monitor SET hostIp=?,serverPort=?,serverStatus=?,lastBlockHeight=?,isSync=?,lastBlockHash=?,updateTime=? WHERE groupId =? AND hostId=?"
 	UpdateWarningSql        = "UPDATE Warning SET isClosed=?,updateTime=? WHERE id=?"
 
@@ -136,7 +140,7 @@ func (mdb *MonitorDB) InsertData(data interface{}) {
 		return
 	}
 	if g, ok := data.(*model.GroupInfo); ok {
-		mdb.insertData(InsertGroupInfoSql, g.GroupName, g.Describe, g.Title)
+		mdb.insertData(InsertGroupInfoSql, g.GroupName, g.Describe, g.Title, g.Email)
 		return
 	}
 	if p, ok := data.(*model.PaymentAddress); ok {
@@ -144,7 +148,7 @@ func (mdb *MonitorDB) InsertData(data interface{}) {
 		return
 	}
 	if g, ok := data.(*model.HostInfo); ok {
-		mdb.insertData(InsertHostInfoSql, g.HostName, g.GroupID, g.GroupName, g.HostIp, g.SSHPort, g.UserName, g.PassWd, g.IsCheckResource, g.ProcessName, g.ServerPort, time.Now().Unix(), time.Now().Unix())
+		mdb.insertData(InsertHostInfoSql, g.HostName, g.GroupID, g.GroupName, g.HostIp, g.SSHPort, g.UserName, g.PassWd, g.IsCheckResource, g.ProcessName, g.ServerPort, g.MainNet, g.NetPort, time.Now().Unix(), time.Now().Unix())
 		return
 	}
 	panic(fmt.Errorf("unknow type data!,data=%v", data))
@@ -232,7 +236,7 @@ func (mdb *MonitorDB) QueryGroupInfoByPageNum(page *model.Page) (items []*model.
 	for rows.Next() {
 		value := model.GroupInfo{}
 		//TODO:这里应该是字段一一对应关系
-		err := rows.Scan(&value.GroupID, &value.GroupName, &value.Describe, &value.Title)
+		err := rows.Scan(&value.GroupID, &value.GroupName, &value.Describe, &value.Title, &value.Email)
 		checkErr(err)
 		items = append(items, &value)
 	}
@@ -252,7 +256,7 @@ func (mdb *MonitorDB) QueryHostInfoByPageNum(page *model.Page) (items []*model.H
 	for rows.Next() {
 		value := model.HostInfo{}
 		//TODO:这里应该是字段一一对应关系
-		err := rows.Scan(&value.HostID, &value.HostName, &value.GroupID, &value.GroupName, &value.HostIp, &value.SSHPort, &value.UserName, &value.PassWd, &value.IsCheckResource, &value.ProcessName, &value.ServerPort, &value.CreateTime, &value.UpdateTime)
+		err := rows.Scan(&value.HostID, &value.HostName, &value.GroupID, &value.GroupName, &value.HostIp, &value.SSHPort, &value.UserName, &value.PassWd, &value.IsCheckResource, &value.ProcessName, &value.ServerPort, &value.MainNet, &value.NetPort, &value.CreateTime, &value.UpdateTime, &value.Email)
 		checkErr(err)
 		items = append(items, &value)
 	}
@@ -272,7 +276,7 @@ func (mdb *MonitorDB) QueryHostInfoByGroupId(groupId int64) (items []*model.Host
 	for rows.Next() {
 		value := model.HostInfo{}
 		//TODO:这里应该是字段一一对应关系
-		err := rows.Scan(&value.HostID, &value.HostName, &value.GroupID, &value.GroupName, &value.HostIp, &value.SSHPort, &value.UserName, &value.PassWd, &value.IsCheckResource, &value.ProcessName, &value.ServerPort, &value.CreateTime, &value.UpdateTime)
+		err := rows.Scan(&value.HostID, &value.HostName, &value.GroupID, &value.GroupName, &value.HostIp, &value.SSHPort, &value.UserName, &value.PassWd, &value.IsCheckResource, &value.ProcessName, &value.ServerPort, &value.MainNet, &value.NetPort, &value.CreateTime, &value.UpdateTime)
 		checkErr(err)
 		items = append(items, &value)
 	}
@@ -312,7 +316,7 @@ func (mdb *MonitorDB) QueryPaymentAddressByPageNum(page *model.Page) (items []*m
 	for rows.Next() {
 		value := model.PaymentAddress{}
 		//TODO:这里应该是字段一一对应关系
-		err := rows.Scan(&value.ID, &value.GroupID, &value.GroupName, &value.Address)
+		err := rows.Scan(&value.ID, &value.GroupID, &value.GroupName, &value.Address, &value.Email)
 		checkErr(err)
 		items = append(items, &value)
 	}
@@ -596,7 +600,7 @@ func (mdb *MonitorDB) UpdateData(data interface{}) {
 	mdb.Lock()
 	defer mdb.Unlock()
 	if g, ok := data.(*model.GroupInfo); ok {
-		mdb.updateData(UpdateGroupInfoSql, g.GroupName, g.Describe, g.Title, g.GroupID)
+		mdb.updateData(UpdateGroupInfoSql, g.GroupName, g.Describe, g.Title, g.Email, g.GroupID)
 		return
 	}
 	if g, ok := data.(*model.PaymentAddress); ok {
@@ -604,7 +608,7 @@ func (mdb *MonitorDB) UpdateData(data interface{}) {
 		return
 	}
 	if g, ok := data.(*model.HostInfo); ok {
-		mdb.updateData(UpdateHostInfoSql, g.HostName, g.HostIp, g.SSHPort, g.UserName, g.PassWd, g.IsCheckResource, g.ProcessName, g.ServerPort, time.Now().Unix(), g.HostID)
+		mdb.updateData(UpdateHostInfoSql, g.HostName, g.HostIp, g.SSHPort, g.UserName, g.PassWd, g.IsCheckResource, g.ProcessName, g.ServerPort, g.MainNet, g.NetPort, time.Now().Unix(), g.HostID)
 		return
 	}
 	//UpdateMonitorSql

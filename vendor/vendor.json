@@ -51,6 +51,12 @@
 			"revisionTime": "2019-05-24T07:18:52Z"
 		},
 		{
+			"checksumSHA1": "2yuhY/XJWqy0sBF/r08EWqIEQcM=",
+			"path": "github.com/33cn/chain33/rpc/grpcclient",
+			"revision": "dcc922dcb4c946bd12a3831089fd3459d9edddd1",
+			"revisionTime": "2019-05-24T07:18:52Z"
+		},
+		{
 			"checksumSHA1": "XBhZpQaFd/BpbzdM/X/boQhl5P8=",
 			"path": "github.com/33cn/chain33/system/crypto/ed25519",
 			"revision": "dcc922dcb4c946bd12a3831089fd3459d9edddd1",
@@ -970,6 +976,12 @@
 			"path": "google.golang.org/grpc/tap",
 			"revision": "dcc922dcb4c946bd12a3831089fd3459d9edddd1",
 			"revisionTime": "2019-05-24T07:18:52Z"
+		},
+		{
+			"checksumSHA1": "iq5WdjScmTU+LfNoerLuwcnXpdM=",
+			"path": "gopkg.in/gomail.v2",
+			"revision": "81ebce5c23dfd25c6c67194b37d3dd3f338c98b1",
+			"revisionTime": "2016-04-11T21:29:32Z"
 		},
 		{
 			"checksumSHA1": "7VYQdUw19TAjD8t9e5YU524k3zE=",

@@ -27,6 +27,13 @@ var (
 	MainJrpc = "http://192.168.0.194:8801"
 
 	CurrDir = ""
+
+	FromEmail = "harrylee2015@qq.com"
+	PassWd    = "vzbvfmsipfkrhfce"
+	Host      = "smtp.qq.com"
+	Port      = 465
+
+	RemoteGrpcClient = "101.37.227.226:8802,39.97.20.242:8802,47.107.15.126:8802,jiedian2.bityuan.com,cloud.bityuan.com"
 )
 
 type Config struct {

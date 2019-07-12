@@ -10,6 +10,7 @@ type GroupInfo struct {
 	GroupName string `json:"groupName"`
 	Describe  string `json:"describe"`
 	Title     string `json:"title"`
+	Email     string `json:"email"`
 }
 
 //paymentAddress
@@ -18,6 +19,7 @@ type PaymentAddress struct {
 	GroupID   int64  `json:"groupId"`
 	GroupName string `json:"groupName"`
 	Address   string `json:"address"`
+	Email     string `json:"email"`
 }
 
 //hostInfo
@@ -34,8 +36,11 @@ type HostInfo struct {
 	IsCheckResource int64  `json:"isCheckResource"`
 	ProcessName     string `json:"processName"`
 	ServerPort      int64  `json:"serverPort"`
+	MainNet         string `json:"mainNet"`
+	NetPort         int64  `json:"netPort"`
 	CreateTime      int64  `json:"createTime"`
 	UpdateTime      int64  `json:"updateTime"`
+	Email           string `json:"email"`
 }
 
 //专门用于返回list数据类型
@@ -84,6 +89,7 @@ type Balance struct {
 	Address    string `json:"address"`
 	Balance    int64  `json:"balance"`
 	CreateTime int64  `json:"createTime"`
+	Email      string `json:"email"`
 }
 
 //warning
@@ -137,4 +143,14 @@ type WarningCount struct {
 type ResonseWarningCount struct {
 	BusWarning []*WarningCount `json:"busWarning"`
 	ResWarning []*WarningCount `json:"resWarning"`
+}
+
+type Email struct {
+	FromMail string
+	PassWd   string
+	Host     string
+	Port     int
+	ToMail   string
+	Subject  string
+	Body     string
 }

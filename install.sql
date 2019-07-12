@@ -22,7 +22,8 @@ CREATE TABLE 'GroupInfo'
   'groupId' INTEGER PRIMARY KEY AUTOINCREMENT,
 	'groupName' TEXT NOT NULL,
 	'describe' TEXT NOT NULL,
-	'title' TEXT NOT NULL
+	'title' TEXT NOT NULL,
+	'email' TEXT NOT NULL
 )
 ;
 
@@ -48,6 +49,8 @@ CREATE TABLE 'HostInfo'
   'isCheckResource' NUMERIC NOT NULL,
 	'processName' TEXT NOT NULL,
 	'serverPort' INTEGER NOT NULL,
+	'mainNet' TEXT NOT NULL,
+    'netPort' INTEGER ,
 	'createTime' INTEGER NOT NULL,
 	'updateTime' INTEGER NOT NULL
 )

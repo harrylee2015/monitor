@@ -2,14 +2,16 @@ package taskmgr
 
 import (
 	"fmt"
+	"time"
+
 	DB "github.com/harrylee2015/monitor/common/db"
+	"github.com/harrylee2015/monitor/common/email"
 	"github.com/harrylee2015/monitor/common/exec"
 	"github.com/harrylee2015/monitor/common/rpc"
 	"github.com/harrylee2015/monitor/common/sftp"
 	"github.com/harrylee2015/monitor/conf"
 	"github.com/harrylee2015/monitor/model"
 	"github.com/inconshreveable/log15"
-	"time"
 )
 
 func getJrpc(ip string, port int64) string {
@@ -109,6 +111,7 @@ func collectBalanceData(db *DB.MonitorDB) {
 			balance := &model.Balance{
 				Address: item.Address,
 				GroupID: item.GroupID,
+				Email:   item.Email,
 			}
 			balances = append(balances, balance)
 		}
@@ -132,6 +135,15 @@ func collectBalanceData(db *DB.MonitorDB) {
 								IsClosed: 0,
 							}
 							db.InsertData(warning)
+							e := &model.Email{
+								FromMail: conf.FromEmail,
+								PassWd:   conf.PassWd,
+								Host:     conf.Host,
+								Port:     conf.Port,
+								ToMail:   balance.Email,
+								Subject:  "test",
+								Body:     "testing",
+							}
 						}
 					}
 					break
