@@ -13,6 +13,9 @@ DROP TABLE IF EXISTS 'ResourceInfo'
 DROP TABLE IF EXISTS 'Monitor'
 ;
 
+DROP TABLE IF EXISTS 'MainNetMonitor'
+;
+
 DROP TABLE IF EXISTS 'Balance'
 ;
 DROP TABLE IF EXISTS 'Warning'
@@ -86,6 +89,20 @@ CREATE TABLE 'Monitor'
 )
 ;
 
+CREATE TABLE 'MainNetMonitor'
+(
+	'id' INTEGER PRIMARY KEY AUTOINCREMENT,
+	'groupId' INTEGER NOT NULL,
+  'hostId' INTEGER NOT NULL,
+  'hostIp' TEXT NOT NULL,
+  'serverPort' INTEGER NOT NULL,
+  'serverStatus' NUMERIC NOT NULL,
+  'lastBlockHeight' INTEGER NOT NULL,
+  'isSync' NUMERIC NOT NULL ,
+  'lastBlockHash' TEXT NOT NULL,
+  'updateTime' INTEGER NOT NULL
+)
+;
 CREATE TABLE 'Balance'
 (
 	'id' INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -132,6 +149,10 @@ CREATE INDEX 'IDX_ResourceInfo_Time'
 
 CREATE INDEX 'IDX_Monitor'
  ON 'Monitor' ('groupId','hostId' ASC)
+;
+
+CREATE INDEX 'IDX_MainNetMonitor'
+ ON 'MainNetMonitor' ('groupId','hostId' ASC)
 ;
 
 CREATE INDEX 'IDX_Warning'

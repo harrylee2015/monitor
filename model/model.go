@@ -82,6 +82,22 @@ type Monitor struct {
 	UpdateTime    int64  `json:"updateTime"`
 }
 
+//MainNet
+type MainNetMonitor struct {
+	ID         int64  `json:"id"`
+	HostID     int64  `json:"hostId"`
+	GroupID    int64  `json:"groupId"`
+	HostIp     string `json:"hostIp"`
+	ServerPort int64  `json:"serverPort"`
+	//0表示服务正常，1表示服务异常
+	ServerStatus    int64 `json:"serverStatus"`
+	LastBlockHeight int64 `json:"lastBlockHeight"`
+	//0表示同步，1表示未同步
+	IsSync        int64  `json:"isSync"`
+	LastBlockHash string `json:"lastBlockHash"`
+	UpdateTime    int64  `json:"updateTime"`
+}
+
 //balance
 type Balance struct {
 	ID         int64  `json:"id"`
@@ -90,6 +106,7 @@ type Balance struct {
 	Balance    int64  `json:"balance"`
 	CreateTime int64  `json:"createTime"`
 	Email      string `json:"email"`
+	GroupName  string `json:"groupName"`
 }
 
 //warning

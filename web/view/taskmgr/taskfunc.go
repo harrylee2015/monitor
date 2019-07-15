@@ -32,7 +32,8 @@ func collectMonitorData(db *DB.MonitorDB) {
 		}
 
 		for _, item := range items {
-			jrpc := getJrpc(item.HostIp, item.ServerPort)
+			//检查主链是否同步
+			jrpc := getJrpc(item.MainNet, item.NetPort)
 			lastHeader, err := rpc.QueryLastHeader(jrpc)
 			if err != nil {
 				//TODO  发生错误时，需要更新服务状态,这里需要定义一个通用函数更新即可
@@ -40,7 +41,39 @@ func collectMonitorData(db *DB.MonitorDB) {
 				continue
 			}
 			isSync, err := rpc.QueryIsSync(jrpc)
-			monitor := &model.Monitor{
+			monitor := &model.MainNetMonitor{
+				HostIp:          item.MainNet,
+				HostID:          item.HostID,
+				GroupID:         item.GroupID,
+				ServerPort:      item.NetPort,
+				ServerStatus:    0,
+				LastBlockHeight: lastHeader.Height,
+				LastBlockHash:   lastHeader.Hash,
+				IsSync: func(flag bool) int64 {
+					if flag {
+						return 0
+					} else {
+						return 1
+					}
+				}(isSync),
+			}
+			values := db.QueryMainNetMonitorById(item.GroupID, item.HostID)
+			if len(values) == 0 {
+				db.InsertData(monitor)
+
+			} else {
+				db.UpdateData(monitor)
+			}
+			//检查平行链
+			jrpc = getJrpc(item.HostIp, item.ServerPort)
+			lastHeader, err = rpc.QueryLastHeader(jrpc)
+			if err != nil {
+				//TODO  发生错误时，需要更新服务状态,这里需要定义一个通用函数更新即可
+				updateAbnormalServerStatus(db, item)
+				continue
+			}
+			isSync, err = rpc.QueryIsSync(jrpc)
+			m := &model.Monitor{
 				HostIp:          item.HostIp,
 				HostID:          item.HostID,
 				GroupID:         item.GroupID,
@@ -56,9 +89,9 @@ func collectMonitorData(db *DB.MonitorDB) {
 					}
 				}(isSync),
 			}
-			values := db.QueryMonitorById(item.GroupID, item.HostID)
-			if len(values) == 0 {
-				db.InsertData(monitor)
+			monitors := db.QueryMonitorById(item.GroupID, item.HostID)
+			if len(monitors) == 0 {
+				db.InsertData(m)
 
 			} else {
 				db.UpdateData(monitor)
@@ -109,9 +142,10 @@ func collectBalanceData(db *DB.MonitorDB) {
 		for _, item := range items {
 			addrs = append(addrs, item.Address)
 			balance := &model.Balance{
-				Address: item.Address,
-				GroupID: item.GroupID,
-				Email:   item.Email,
+				Address:   item.Address,
+				GroupID:   item.GroupID,
+				Email:     item.Email,
+				GroupName: item.GroupName,
 			}
 			balances = append(balances, balance)
 		}
@@ -141,9 +175,11 @@ func collectBalanceData(db *DB.MonitorDB) {
 								Host:     conf.Host,
 								Port:     conf.Port,
 								ToMail:   balance.Email,
-								Subject:  "test",
-								Body:     "testing",
+								Subject:  fmt.Sprintf("%v平行公链运维告警", balance.GroupName),
+								Body:     warning.Warning,
 							}
+							//发送告警邮件
+							go email.SendMail(e)
 						}
 					}
 					break
@@ -208,7 +244,19 @@ func collectResourceData(db *DB.MonitorDB) {
 						Warning:  fmt.Sprintf("分组%v,%s 节点，disk usedPercent %f%%,达到预警值%f%%!!", item.GroupID, item.HostIp, resource.DiskUsedPercent, conf.DiskUsedPercentWarning),
 						IsClosed: 0,
 					}
+
 					db.InsertData(warning)
+					e := &model.Email{
+						FromMail: conf.FromEmail,
+						PassWd:   conf.PassWd,
+						Host:     conf.Host,
+						Port:     conf.Port,
+						ToMail:   item.Email,
+						Subject:  fmt.Sprintf("%v平行公链运维告警", item.GroupName),
+						Body:     warning.Warning,
+					}
+					//发送告警邮件
+					go email.SendMail(e)
 				}
 
 			}
@@ -223,6 +271,17 @@ func collectResourceData(db *DB.MonitorDB) {
 						IsClosed: 0,
 					}
 					db.InsertData(warning)
+					e := &model.Email{
+						FromMail: conf.FromEmail,
+						PassWd:   conf.PassWd,
+						Host:     conf.Host,
+						Port:     conf.Port,
+						ToMail:   item.Email,
+						Subject:  fmt.Sprintf("%v平行公链运维告警", item.GroupName),
+						Body:     warning.Warning,
+					}
+					//发送告警邮件
+					go email.SendMail(e)
 				}
 
 			}
@@ -237,6 +296,17 @@ func collectResourceData(db *DB.MonitorDB) {
 						IsClosed: 0,
 					}
 					db.InsertData(warning)
+					e := &model.Email{
+						FromMail: conf.FromEmail,
+						PassWd:   conf.PassWd,
+						Host:     conf.Host,
+						Port:     conf.Port,
+						ToMail:   item.Email,
+						Subject:  fmt.Sprintf("%v平行公链运维告警", item.GroupName),
+						Body:     warning.Warning,
+					}
+					//发送告警邮件
+					go email.SendMail(e)
 				}
 
 			}
@@ -249,7 +319,7 @@ func collectResourceData(db *DB.MonitorDB) {
 	}
 }
 
-//区块hash一致性检查
+//区块hash一致性检查,检查主链,平行链
 func checkBlockHash(db *DB.MonitorDB) {
 	//TODO :检查方法如下
 	// 1：根据groupId遍历节点moniitor，过滤出有效节点
@@ -279,10 +349,10 @@ func checkBlockHash(db *DB.MonitorDB) {
 				continue
 			}
 
-			if len(normals) == 1 {
-				//TODO: 如果只有一个节点，默认区块hash是一致的
-				continue
-			}
+			// if len(normals) == 1 {
+			// 	//TODO: 如果只有一个节点，默认区块hash是一致的
+			// 	continue
+			// }
 			lowestBlock := normals[0]
 			for i := 0; i < len(normals); i++ {
 				if normals[i].LastBlockHeight < lowestBlock.LastBlockHeight {
@@ -291,7 +361,6 @@ func checkBlockHash(db *DB.MonitorDB) {
 			}
 			//调用rpc接口查询,kv map 用于接收查询结果
 			hostInfos := db.QueryHostInfoByGroupId(lowestBlock.GroupID)
-
 			height := lowestBlock.LastBlockHeight
 			KV1 := make(map[*model.HostInfo]string)
 			COUNT1 := make(map[string]int)
@@ -330,6 +399,17 @@ func checkBlockHash(db *DB.MonitorDB) {
 									IsClosed: 0,
 								}
 								db.InsertData(warning)
+								e := &model.Email{
+									FromMail: conf.FromEmail,
+									PassWd:   conf.PassWd,
+									Host:     conf.Host,
+									Port:     conf.Port,
+									ToMail:   item.Email,
+									Subject:  fmt.Sprintf("%v平行公链运维告警", item.GroupName),
+									Body:     warning.Warning,
+								}
+								//发送告警邮件
+								go email.SendMail(e)
 							}
 						}
 					}

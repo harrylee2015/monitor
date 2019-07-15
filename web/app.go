@@ -2,6 +2,7 @@ package web
 
 import (
 	"fmt"
+
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"
 
@@ -84,6 +85,8 @@ func (s *WebServer) routeAddressmgr() {
 func (s *WebServer) routeMonitormgr() {
 	// 根据groupId查看monitor信息
 	s.route("GET", "/monitormgr/group/{groupId:int}", hostmgr.ListMonitors)
+	//查询主链同步状态
+	s.route("GET", "/monitormgr/group/mainnet/{groupId:int}", hostmgr.ListMainNetMonitors)
 	// 统计业务告警信息总数
 	s.route("GET", "/monitormgr/buswarningcount/{groupId:int}", hostmgr.GetBusWaringCount)
 	// 统计资源告警信息总数

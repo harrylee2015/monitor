@@ -17,6 +17,15 @@ func ListMonitors(ctx iris.Context) {
 	items := types.GetDB().QueryMonitor(id)
 	ctx.JSON(items)
 }
+func ListMainNetMonitors(ctx iris.Context) {
+	id, err := ctx.Params().GetInt64("groupId")
+	if err != nil {
+		ClientErr(ctx, err)
+		return
+	}
+	items := types.GetDB().QueryMainNetMonitor(id)
+	ctx.JSON(items)
+}
 
 func GetBusWaringCount(ctx iris.Context) {
 	id, err := ctx.Params().GetInt64("groupId")
@@ -102,17 +111,17 @@ func GetBlockHash(ctx iris.Context) {
 		ClientErr(ctx, err)
 		return
 	}
-	items := types.GetDB().QueryWarningByGroupIdAndType(id,db.HASH_WARING)
-	if len(items)==0{
-		hash :=&model.Hash{
-			IsConsistent:true,
+	items := types.GetDB().QueryWarningByGroupIdAndType(id, db.HASH_WARING)
+	if len(items) == 0 {
+		hash := &model.Hash{
+			IsConsistent: true,
 		}
 		ctx.JSON(hash)
 		return
 	}
-	hash :=&model.Hash{
-		IsConsistent:false,
-		Values:items,
+	hash := &model.Hash{
+		IsConsistent: false,
+		Values:       items,
 	}
 	ctx.JSON(hash)
 }

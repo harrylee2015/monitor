@@ -20,6 +20,7 @@ const (
 	DISK_WARING
 	BALANCE_WARING
 	HASH_WARING
+	M_HASH_WARING
 )
 const (
 	Type_Group = iota + 1
@@ -33,6 +34,7 @@ var (
 	InsertHostInfoSql       = "INSERT INTO HostInfo (hostName,groupId,groupName, hostIp, sshPort,userName,passWd,isCheckResource,processName,serverPort,mainNet,netPort,createTime,updateTime) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 	InsertResourceInfoSql   = "INSERT INTO ResourceInfo (groupId, hostId, memTotal,memUsedPercent,cpuTotal,cpuUsedPercent,diskTotal,diskUsedPercent,createTime) VALUES (?,?,?,?,?,?,?,?,?)"
 	InsertMonitorSql        = "INSERT INTO Monitor (groupId, hostId, hostIp,serverPort,serverStatus,lastBlockHeight,isSync,lastBlockHash,updateTime) VALUES (?,?,?,?,?,?,?,?,?)"
+	InsertMainNetMonitorSql = "INSERT INTO MainNetMonitor (groupId, hostId, hostIp,serverPort,serverStatus,lastBlockHeight,isSync,lastBlockHash,updateTime) VALUES (?,?,?,?,?,?,?,?,?)"
 	InsertBalanceSql        = "INSERT INTO Balance (groupId, address, balance,createTime) VALUES (?,?,?,?)"
 	InsertWarningSql        = "INSERT INTO Warning (hostId,groupId,type,warning,blockHeight,createTime,isClosed,updateTime) VALUES (?,?,?,?,?,?,?,?)"
 
@@ -48,7 +50,9 @@ var (
 	QueryPaymentAddressList       = "SELECT PaymentAddress.id,PaymentAddress.groupId, GroupInfo.groupName, PaymentAddress.address,GroupInfo.email FROM PaymentAddress LEFT OUTER JOIN GroupInfo ON PaymentAddress.groupId = GroupInfo.groupId LIMIT ? OFFSET ?"
 	QueryResourceInfo             = "SELECT * FROM ResourceInfo WHERE hostId=? ORDER BY createTime DESC limit ?"
 	QueryMonitorSql               = "SELECT * FROM Monitor WHERE groupId=? ORDER BY hostId ASC"
+	QueryMainNetMonitorSql        = "SELECT * FROM MainNetMonitor WHERE groupId=? ORDER BY hostId ASC"
 	QueryMonitorById              = "SELECT * FROM Monitor WHERE groupId=? AND hostId=?"
+	QueryMainNetMonitorById       = "SELECT * FROM MainNetMonitor WHERE groupId=? AND hostId=?"
 	QueryLastBalance              = "SELECT * FROM Balance WHERE groupId=? ORDER BY createTime DESC LIMIT 1"
 	QueryBalanceSql               = "SELECT * FROM Balance WHERE groupId=? ORDER BY createTime ASC"
 	QueryBusWarningCount          = "SELECT COUNT(*) FROM Warning WHERE isClosed=0  AND groupId=? AND type IN ( 4, 5 )"
@@ -66,6 +70,7 @@ var (
 	UpdatePaymentAddressSql = "UPDATE PaymentAddress SET groupId=?,groupName=?,address=? WHERE id=?"
 	UpdateHostInfoSql       = "UPDATE HostInfo SET hostName=?,hostIp=?,sshPort=?,userName=?,passWd=?,isCheckResource=?,processName=?,serverPort=?,mainNet=?,netPort=?,updateTime=? WHERE hostId=?"
 	UpdateMonitorSql        = "UPDATE Monitor SET hostIp=?,serverPort=?,serverStatus=?,lastBlockHeight=?,isSync=?,lastBlockHash=?,updateTime=? WHERE groupId =? AND hostId=?"
+	UpdateMainNetMonitorSql = "UPDATE MainNetMonitor SET hostIp=?,serverPort=?,serverStatus=?,lastBlockHeight=?,isSync=?,lastBlockHash=?,updateTime=? WHERE groupId =? AND hostId=?"
 	UpdateWarningSql        = "UPDATE Warning SET isClosed=?,updateTime=? WHERE id=?"
 
 	DelGroupInfoSql            = "DELETE FROM GroupInfo WHERE groupId=?"
@@ -128,6 +133,10 @@ func (mdb *MonitorDB) InsertData(data interface{}) {
 		return
 	}
 	if g, ok := data.(*model.Monitor); ok {
+		mdb.insertData(InsertMonitorSql, g.GroupID, g.HostID, g.HostIp, g.ServerPort, g.ServerStatus, g.LastBlockHeight, g.IsSync, g.LastBlockHash, time.Now().Unix())
+		return
+	}
+	if g, ok := data.(*model.MainNetMonitor); ok {
 		mdb.insertData(InsertMonitorSql, g.GroupID, g.HostID, g.HostIp, g.ServerPort, g.ServerStatus, g.LastBlockHeight, g.IsSync, g.LastBlockHash, time.Now().Unix())
 		return
 	}
@@ -364,6 +373,26 @@ func (mdb *MonitorDB) QueryMonitor(groupId int64) (items []*model.Monitor) {
 	return items
 }
 
+func (mdb *MonitorDB) QueryMainNetMonitor(groupId int64) (items []*model.MainNetMonitor) {
+	mdb.Lock()
+	defer mdb.Unlock()
+	stmt, err := mdb.db.Prepare(QueryMainNetMonitorSql)
+	checkErr(err)
+	defer stmt.Close()
+
+	rows, err := stmt.Query(groupId)
+	checkErr(err)
+	defer rows.Close()
+	for rows.Next() {
+		value := model.MainNetMonitor{}
+		//TODO:这里应该是字段一一对应关系
+		err := rows.Scan(&value.ID, &value.GroupID, &value.HostID, &value.HostIp, &value.ServerPort, &value.ServerStatus, &value.LastBlockHeight, &value.IsSync, &value.LastBlockHash, &value.UpdateTime)
+		checkErr(err)
+		items = append(items, &value)
+	}
+	return items
+}
+
 func (mdb *MonitorDB) QueryMonitorById(groupId, hostId int64) (items []*model.Monitor) {
 	mdb.Lock()
 	defer mdb.Unlock()
@@ -376,6 +405,26 @@ func (mdb *MonitorDB) QueryMonitorById(groupId, hostId int64) (items []*model.Mo
 	defer rows.Close()
 	for rows.Next() {
 		value := model.Monitor{}
+		//TODO:这里应该是字段一一对应关系
+		err := rows.Scan(&value.ID, &value.GroupID, &value.HostID, &value.HostIp, &value.ServerPort, &value.ServerStatus, &value.LastBlockHeight, &value.IsSync, &value.LastBlockHash, &value.UpdateTime)
+		checkErr(err)
+		items = append(items, &value)
+	}
+	return items
+}
+
+func (mdb *MonitorDB) QueryMainNetMonitorById(groupId, hostId int64) (items []*model.MainNetMonitor) {
+	mdb.Lock()
+	defer mdb.Unlock()
+	stmt, err := mdb.db.Prepare(QueryMainNetMonitorById)
+	checkErr(err)
+	defer stmt.Close()
+
+	rows, err := stmt.Query(groupId, hostId)
+	checkErr(err)
+	defer rows.Close()
+	for rows.Next() {
+		value := model.MainNetMonitor{}
 		//TODO:这里应该是字段一一对应关系
 		err := rows.Scan(&value.ID, &value.GroupID, &value.HostID, &value.HostIp, &value.ServerPort, &value.ServerStatus, &value.LastBlockHeight, &value.IsSync, &value.LastBlockHash, &value.UpdateTime)
 		checkErr(err)
@@ -614,6 +663,11 @@ func (mdb *MonitorDB) UpdateData(data interface{}) {
 	//UpdateMonitorSql
 	if g, ok := data.(*model.Monitor); ok {
 		mdb.updateData(UpdateMonitorSql, g.HostIp, g.ServerPort, g.ServerStatus, g.LastBlockHeight, g.IsSync, g.LastBlockHash, time.Now().Unix(), g.GroupID, g.HostID)
+		return
+	}
+	//UpdateMonitorSql
+	if g, ok := data.(*model.MainNetMonitor); ok {
+		mdb.updateData(UpdateMainNetMonitorSql, g.HostIp, g.ServerPort, g.ServerStatus, g.LastBlockHeight, g.IsSync, g.LastBlockHash, time.Now().Unix(), g.GroupID, g.HostID)
 		return
 	}
 	//UpdateWarningSql
