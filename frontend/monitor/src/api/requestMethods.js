@@ -117,6 +117,11 @@ export const resAlarmCount = (groupId) => {
 export const nodeMonitor = (groupId) => {
     return http.getFetch("monitormgr/group/" + groupId);
 }
+
+// -查看主节点monitor信息
+export const mainNetMonitor = (groupId) => {
+    return http.getFetch("monitormgr/group/mainnet/" + groupId);
+}
 // -查看hash一致性
 export const hashCheck = (groupId) => {
     return http.getFetch("monitormgr/hashcheck/" + groupId);

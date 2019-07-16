@@ -40,4 +40,5 @@ const (
 	Chain33_GetTokenBalance       = "Chain33.GetTokenBalance"
 	Chain33_Query                 = "Chain33.Query"
 	Para_IsSync                   = "paracross.IsSync"
+	Chain33_IsSync                = "Chain33.IsSync"
 )

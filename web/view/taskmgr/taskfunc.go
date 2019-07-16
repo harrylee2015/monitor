@@ -40,7 +40,7 @@ func collectMonitorData(db *DB.MonitorDB) {
 				updateAbnormalServerStatus(db, item)
 				continue
 			}
-			isSync, err := rpc.QueryIsSync(jrpc)
+			isSync, err := rpc.QueryMainNetIsSync(jrpc)
 			monitor := &model.MainNetMonitor{
 				HostIp:          item.MainNet,
 				HostID:          item.HostID,
@@ -92,9 +92,8 @@ func collectMonitorData(db *DB.MonitorDB) {
 			monitors := db.QueryMonitorById(item.GroupID, item.HostID)
 			if len(monitors) == 0 {
 				db.InsertData(m)
-
 			} else {
-				db.UpdateData(monitor)
+				db.UpdateData(m)
 			}
 
 		}

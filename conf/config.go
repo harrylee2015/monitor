@@ -51,6 +51,8 @@ type DbConfig struct {
 type Monitor struct {
 	MainChain string
 
+	RemoteGrpcClient string
+
 	CollectMonitorCycle int64
 
 	CollectResourceCycle int64
@@ -72,6 +74,10 @@ type Monitor struct {
 	DiskUsedPercentWarning float64
 
 	BalanceWarning float64
+
+	FromEmail string
+
+	PassWd string
 }
 
 type LogConfig struct {
@@ -98,6 +104,10 @@ type LogConfig struct {
 
 func SetConf(conf *Config) {
 	MainJrpc = conf.Monitor.MainChain
+
+	if conf.Monitor.RemoteGrpcClient != "" {
+		RemoteGrpcClient = conf.Monitor.RemoteGrpcClient
+	}
 	CollectMonitorCycle = conf.Monitor.CollectMonitorCycle
 	CollectResourceCycle = conf.Monitor.CollectResourceCycle
 
@@ -118,4 +128,13 @@ func SetConf(conf *Config) {
 	DiskUsedPercentWarning = conf.Monitor.DiskUsedPercentWarning
 
 	BalanceWarning = conf.Monitor.BalanceWarning
+
+	if conf.Monitor.FromEmail != "" {
+		FromEmail = conf.Monitor.FromEmail
+	}
+
+	if conf.Monitor.PassWd != "" {
+		PassWd = conf.Monitor.PassWd
+	}
+
 }

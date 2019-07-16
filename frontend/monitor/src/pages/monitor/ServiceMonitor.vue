@@ -17,10 +17,40 @@
     </el-row>
     <el-row class="title" type="flex" align="middle">
       <div></div>
-      <div>节点监控</div>
+      <div>平行链节点监控</div>
     </el-row>
     <el-row class="content">
       <el-table :data="nodeTableData" style="width: 100%" size="small">
+        <el-table-column prop="hostIp" label="节点" align="center" width="130"></el-table-column>
+        <el-table-column prop="serverStatus" label="进程" align="center" width="100">
+          <template slot-scope="scope">
+            <span v-if="scope.row.isSync == 0">运行</span>
+            <span v-else>停止</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="serverPort" label="RPC端口" align="center" width="100"></el-table-column>
+        <el-table-column prop="lastBlockHeight" label="最新区块高度" align="center" width="120"></el-table-column>
+        <el-table-column prop="isSync" label="主链同步状态" align="center" width="120">
+          <template slot-scope="scope">
+            <span v-if="scope.row.isSync == 0">已同步</span>
+            <span v-else>未同步</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="lastBlockHash" label="最新区块Hash" align="center">
+          <template slot-scope="scope">{{scope.row.lastBlockHash | formatHash}}</template>
+        </el-table-column>
+      </el-table>
+      <div class="corner left-top"></div>
+      <div class="corner left-bottom"></div>
+      <div class="corner right-top"></div>
+      <div class="corner right-bottom"></div>
+    </el-row>
+        <el-row class="title" type="flex" align="middle">
+      <div></div>
+      <div>主网节点监控</div>
+    </el-row>
+    <el-row class="content">
+      <el-table :data="mainNetNodeTableData" style="width: 100%" size="small">
         <el-table-column prop="hostIp" label="节点" align="center" width="130"></el-table-column>
         <el-table-column prop="serverStatus" label="进程" align="center" width="100">
           <template slot-scope="scope">
@@ -100,6 +130,7 @@
 import {
   groupList,
   nodeMonitor,
+  mainNetMonitor,
   addrBalance,
   balancelist,
   buswarning,
@@ -118,6 +149,7 @@ export default {
       group: "",
       options: [],
       nodeTableData: [],
+      mainNetNodeTableData: [],
       balance: 0,
       balanceUpdateTime: 0,
       alarmTableData: [],
@@ -154,6 +186,9 @@ export default {
     requestNode(groupId) {
       nodeMonitor(groupId).then(res => {
         this.nodeTableData = res.data;
+      });
+      mainNetMonitor(groupId).then(res => {
+        this.mainNetNodeTableData = res.data;
       });
     },
     requestHashCheck(groupId) {

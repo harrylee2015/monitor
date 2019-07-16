@@ -4,12 +4,14 @@ import (
 	"fmt"
 
 	"bytes"
+
 	"github.com/33cn/chain33/common"
 	log "github.com/inconshreveable/log15"
 
-	"github.com/33cn/chain33/types"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/33cn/chain33/types"
 )
 
 var (
@@ -174,6 +176,15 @@ func QueryIsSync(jrpcURl string) (bool, error) {
 	return res, nil
 }
 
+func QueryMainNetIsSync(jrpcURl string) (bool, error) {
+	var res bool
+	ctx := NewRpcCtx(jrpcURl, Chain33_IsSync, nil, &res)
+	_, err := ctx.ReplyInterface()
+	if err != nil {
+		return false, err
+	}
+	return res, nil
+}
 func QueryBalance(jrpcURl string, addrList []string) ([]*Account, error) {
 	var res []*Account
 

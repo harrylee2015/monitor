@@ -19,14 +19,15 @@
       >
         <!-- <el-table-column type="selection" width="40"></el-table-column> -->
         <el-table-column prop="groupId" label="序号" align="center" width="60"></el-table-column>
-        <el-table-column prop="groupName" label="组名" align="center" width="80"></el-table-column>
-        <el-table-column prop="title" label="前缀" align="center" width="150">
+        <el-table-column prop="groupName" label="组名" align="center" width="100"></el-table-column>
+        <el-table-column prop="title" label="前缀" align="center" width="180">
           <template slot-scope="scope">
             <span v-if="scope.row.title">{{scope.row.title}}</span>
             <span v-else>--</span>
           </template>
         </el-table-column>
         <el-table-column prop="describe" label="介绍" align="center"></el-table-column>
+        <el-table-column prop="email" label="运维邮箱" align="center"></el-table-column>
         <el-table-column label="操作" align="center" width="90">
           <template slot-scope="scope">
             <span class="opt-mod" @click="handleUpdateGroup(scope.$index, scope.row)">修改</span>
@@ -69,6 +70,13 @@
         >
           <el-input v-model="addForm.title"></el-input>
         </el-form-item>
+        <el-form-item
+          label="运维邮箱："
+          prop="email"
+          :rules="[{ required: true, message: '请输入邮箱地址', trigger: 'blur' }]"
+        >
+          <el-input v-model="addForm.email"></el-input>
+        </el-form-item>
         <el-form-item label="介  绍：" prop="describe">
           <el-input type="textarea" v-model="addForm.describe" rows="6" resize="none"></el-input>
         </el-form-item>
@@ -106,7 +114,8 @@ export default {
         groupId: 0,
         groupName: "",
         describe: "",
-        title: ""
+        title: "",
+        email:""
       },
 
       dialogVisible: false,
@@ -177,6 +186,7 @@ export default {
       this.addForm.groupName = row.groupName;
       this.addForm.describe = row.describe;
       this.addForm.title = row.title;
+      this.addForm.email = row.email;
       this.dialogVisible = true;
     },
     AddGroup() {
@@ -209,6 +219,7 @@ export default {
       this.addForm.groupName = "";
       this.addForm.describe = "";
       this.addForm.title = "";
+      this.addForm.email = "";
     },
 
     resMsg(res, opt) {

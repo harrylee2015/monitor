@@ -13,16 +13,17 @@
     <el-row class="content">
       <el-table :data="tableData" style="width: 100%">
         <!-- <el-table-column type="selection" width="20"></el-table-column> -->
-        <el-table-column prop="hostId" label="节点ID" align="center" width="80"></el-table-column>
-        <el-table-column prop="hostName" label="节点名称" align="center"></el-table-column>
-        <el-table-column prop="groupName" label="所属分组" align="center"></el-table-column>
-        <el-table-column prop="hostIp" label="节点IP" align="center" width="125"></el-table-column>
-        <el-table-column prop="SSHPort" label="SSH端口" align="center">
+        <!-- <el-table-column prop="hostId" label="节点ID" align="center" width="80"></el-table-column> -->
+        <!-- <el-table-column prop="hostId" label="节点ID" align="center" ></el-table-column> -->
+        <el-table-column prop="hostName" label="节点名称" align="center" ></el-table-column>
+        <el-table-column prop="groupName" label="所属分组" align="center" ></el-table-column>
+        <el-table-column prop="hostIp" label="节点IP" align="center" width="140"></el-table-column>
+        <!-- <el-table-column prop="SSHPort" label="SSH端口" align="center">
           <template slot-scope="scope">
             <span v-if="scope.row.SSHPort && scope.row.SSHPort != 0">{{scope.row.SSHPort}}</span>
             <span v-else>--</span>
           </template>
-        </el-table-column>
+        </el-table-column> -->
         <el-table-column prop="userName" label="用户名" align="center">
           <template slot-scope="scope">
             <span v-if="scope.row.userName">{{scope.row.userName}}</span>
@@ -35,8 +36,10 @@
             <span v-else>--</span>
           </template>
         </el-table-column>
-        <el-table-column prop="processName" label="进程" align="center"></el-table-column>
-        <el-table-column prop="serverPort" label="服务端口" align="center" width="90"></el-table-column>
+        <!-- <el-table-column prop="processName" label="进程" align="center"></el-table-column> -->
+        <el-table-column prop="serverPort" label="服务端口" align="center"></el-table-column>
+        <el-table-column prop="mainNet" label="主网IP" align="center" width="140"></el-table-column>
+        <el-table-column prop="netPort" label="主网端口" align="center"></el-table-column>
         <el-table-column label="操作" align="center" width="100">
           <template slot-scope="scope">
             <span class="opt-mod" @click="handleUpdateNode(scope.$index, scope.row)">修改</span>
@@ -78,12 +81,21 @@
             <el-form-item label="节点IP：" prop="hostIp">
               <el-input v-model="addForm.hostIp"></el-input>
             </el-form-item>
-            <el-form-item label="SSH端口：" prop="SSHPort">
-              <el-input v-model="addForm.SSHPort"></el-input>
+            <el-form-item label="服务端口：" prop="serverPort">
+              <el-input v-model="addForm.serverPort"></el-input>
+            </el-form-item>
+            <el-form-item label="主网IP：" prop="mainNet">
+              <el-input v-model="addForm.mainNet"></el-input>
+            </el-form-item>
+            <el-form-item label="主网端口：" prop="netPort">
+              <el-input v-model="addForm.netPort"></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="1"></el-col>
           <el-col :span="11">
+            <el-form-item label="SSH端口：" prop="SSHPort">
+              <el-input v-model="addForm.SSHPort"></el-input>
+            </el-form-item>
             <el-form-item label="用户名：" prop="userName">
               <el-input v-model="addForm.userName"></el-input>
             </el-form-item>
@@ -93,9 +105,7 @@
             <el-form-item label="进程名：" prop="processName">
               <el-input v-model="addForm.processName"></el-input>
             </el-form-item>
-            <el-form-item label="服务端口：" prop="serverPort">
-              <el-input v-model="addForm.serverPort"></el-input>
-            </el-form-item>
+
           </el-col>
         </el-row>
       </el-form>
@@ -138,7 +148,16 @@ export default {
         option: [
           { required: true, message: "请选择所属分组", trigger: "change" }
         ],
-        hostIp: [{ required: true, message: "请输入节点IP", trigger: "blur" }],
+        hostIp: [{ required: true, message: "请输入节点IP", trigger: "blur" }
+        ],
+        serverPort: [
+          { required: true, message: "请输入服务端口", trigger: "blur" }
+        ],
+        mainNet: [{ required: true, message: "请输入主网IP", trigger: "blur" }
+        ],
+        netPort: [
+          { required: true, message: "请输入主网服务端口", trigger: "blur" }
+        ],
         // SSHPort: [{ required: true, message: "请输入SSH端口", trigger: "blur" }],
         // userName: [
         //   { required: true, message: "请输入用户名", trigger: "blur" }
@@ -147,9 +166,7 @@ export default {
         processName: [
           { required: true, message: "请输入进程名", trigger: "blur" }
         ],
-        serverPort: [
-          { required: true, message: "请输入服务端口", trigger: "blur" }
-        ]
+     
       },
       addForm: {
         hostId: 0,
@@ -160,6 +177,8 @@ export default {
         passWd: "",
         processName: "",
         serverPort: "",
+        mainNet: "",
+        netPort: "",
         option: ""
       },
       groupDisable: false
@@ -214,6 +233,8 @@ export default {
       this.addForm.passWd = row.passWd;
       this.addForm.processName = row.processName;
       this.addForm.serverPort = row.serverPort;
+      this.addForm.mainNet = row.mainNet;
+      this.addForm.netPort = row.netPort;
       this.addForm.option = optionVal;
       this.dialogVisible = true;
     },
@@ -240,6 +261,9 @@ export default {
       }
       data.processName = this.addForm.processName;
       data.serverPort = this.addForm.serverPort * 1;
+      data.mainNet = this.addForm.mainNet;
+      data.netPort = this.addForm.netPort * 1;
+
 
       return data;
     },

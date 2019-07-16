@@ -137,7 +137,7 @@ func (mdb *MonitorDB) InsertData(data interface{}) {
 		return
 	}
 	if g, ok := data.(*model.MainNetMonitor); ok {
-		mdb.insertData(InsertMonitorSql, g.GroupID, g.HostID, g.HostIp, g.ServerPort, g.ServerStatus, g.LastBlockHeight, g.IsSync, g.LastBlockHash, time.Now().Unix())
+		mdb.insertData(InsertMainNetMonitorSql, g.GroupID, g.HostID, g.HostIp, g.ServerPort, g.ServerStatus, g.LastBlockHeight, g.IsSync, g.LastBlockHash, time.Now().Unix())
 		return
 	}
 	if g, ok := data.(*model.Balance); ok {
@@ -637,11 +637,11 @@ func (mdb *MonitorDB) updateData(sql string, args ...interface{}) {
 	defer stmt.Close()
 	res, err := stmt.Exec(args...)
 	checkErr(err)
-	affect, err := res.RowsAffected()
+	_, err = res.RowsAffected()
 	checkErr(err)
-	if affect != 1 {
-		panic(fmt.Errorf("update data error! sql=%v", sql))
-	}
+	// if affect != 1 {
+	// 	panic(fmt.Errorf("update data error! sql=%v", sql))
+	// }
 }
 
 // UpdateData
